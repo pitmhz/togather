@@ -1,0 +1,41 @@
+{
+  "design_system": "Notion-Like",
+  "core_principles": [
+    "Content-First",
+    "Flat Design (Minimal Shadows)",
+    "High Contrast Typography",
+    "Structured Borders"
+  ],
+  "color_palette": {
+    "background": "#FFFFFF (Pure White) or #F7F7F5 (Notion Off-White)",
+    "text_primary": "#37352F (Not Black, but Deep Charcoal)",
+    "text_secondary": "#9B9A97 (Warm Gray)",
+    "border": "#E0E0E0 (Light Gray, omnipresent)",
+    "button_primary": "#000000 (Solid Black) or #EB5757 (Alerts)",
+    "button_secondary": "#FFFFFF with #D0D0D0 Border (The 'Continue with' style)",
+    "selection_highlight": "#2383E2 (Blue Ring)"
+  },
+  "typography": {
+    "font_family": "Inter, sans-serif, ui-sans-serif",
+    "headings": "Font-weight 600 or 700, tight tracking",
+    "body": "Font-weight 400, readable line-height",
+    "labels": "Uppercase, small, tracking-wide, text-secondary"
+  },
+  "components": {
+    "cards": {
+      "radius": "rounded-lg (6px - 8px)",
+      "shadow": "none",
+      "border": "1px solid #E0E0E0",
+      "hover": "bg-gray-50 (Subtle tint change, no lift)"
+    },
+    "inputs": {
+      "bg": "#F7F7F5 (Light Gray) or Transparent with Border",
+      "radius": "rounded-md",
+      "focus": "ring-2 ring-blue-400 border-transparent"
+    },
+    "badges/tags": {
+      "style": "Pill shape, pastel background, dark text",
+      "radius": "rounded-full or rounded-sm"
+    }
+  }
+}

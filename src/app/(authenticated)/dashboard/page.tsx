@@ -30,7 +30,7 @@ function getStatusBadge(roles: { is_filled: boolean }[]) {
 
   if (totalRoles === 0) {
     return (
-      <Badge variant="secondary" className="text-xs">
+      <Badge variant="secondary" className="text-xs bg-[#E3E3E3] text-[#787774] border-0 rounded-sm">
         Draft
       </Badge>
     );
@@ -38,14 +38,14 @@ function getStatusBadge(roles: { is_filled: boolean }[]) {
 
   if (filledRoles < totalRoles) {
     return (
-      <Badge variant="destructive" className="text-xs bg-amber-500 hover:bg-amber-600">
+      <Badge className="text-xs bg-[#FADEC9] text-[#D9730D] border-0 rounded-sm hover:bg-[#FADEC9]">
         Butuh Petugas
       </Badge>
     );
   }
 
   return (
-    <Badge className="text-xs bg-emerald-500 hover:bg-emerald-600">
+    <Badge className="text-xs bg-[#DBEDDB] text-[#0F7B6C] border-0 rounded-sm hover:bg-[#DBEDDB]">
       Siap Melayani
     </Badge>
   );
@@ -55,19 +55,19 @@ function EventCard({ event, isPast = false, isSlider = false }: { event: EventWi
   if (isSlider) {
     return (
       <Link href={`/events/${event.id}`} className="block h-full">
-        <Card className="transition-all h-full bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md cursor-pointer">
+        <Card className="transition-colors h-full bg-white border border-[#E3E3E3] hover:bg-[#F7F7F5] cursor-pointer">
           <CardContent className="p-5 h-full flex flex-col relative">
             {/* Top: Date & Status */}
             <div className="flex justify-between items-start mb-4">
-              <div className="flex-shrink-0 w-16 h-16 rounded-xl flex flex-col items-center justify-center bg-white dark:bg-zinc-800 shadow-sm border border-black/5">
-                <span className="text-sm font-semibold uppercase text-indigo-600">
+              <div className="flex-shrink-0 w-14 h-14 rounded-md flex flex-col items-center justify-center bg-[#F7F7F5] border border-[#E3E3E3]">
+                <span className="text-xs font-medium uppercase text-[#9B9A97]">
                   {format(new Date(event.event_date), "EEE", { locale: idLocale })}
                 </span>
-                <span className="text-2xl font-bold text-indigo-600">
+                <span className="text-xl font-semibold text-[#37352F]">
                   {format(new Date(event.event_date), "d")}
                 </span>
               </div>
-              <div className="scale-110 origin-top-right">
+              <div>
                 {getStatusBadge(event.event_roles || [])}
               </div>
             </div>
@@ -174,7 +174,16 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Fetch ALL events (RLS now allows all authenticated users to read)
+  // Fetch user's group (for MVP, just get the first group)
+  const { data: groups } = await supabase
+    .from("groups")
+    .select("id, name")
+    .limit(1);
+  
+  const userGroup = groups?.[0];
+  const groupName = userGroup?.name || "Togather";
+
+  // Fetch ALL events (RLS handles visibility)
   const { data: allEvents } = await supabase
     .from("events")
     .select("id, title, topic, event_date, location, event_roles(is_filled)")
@@ -200,20 +209,18 @@ export default async function DashboardPage() {
   const displayName = userEmail.split("@")[0];
 
   return (
-    <main className="min-h-screen flex flex-col bg-slate-50 dark:bg-zinc-950">
+    <main className="min-h-screen flex flex-col bg-[#FBFBFA]">
       {/* Header */}
-      <header className="flex items-center justify-between p-4 border-b border-border">
+      <header className="flex items-center justify-between p-4 border-b border-[#E3E3E3] bg-white">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-950 rounded-full flex items-center justify-center">
-            <Users className="w-4 h-4 text-indigo-600" />
-          </div>
-          <span className="font-heading font-semibold text-lg text-foreground">
-            Togather
+          <div className="text-xl">🤝</div>
+          <span className="font-heading font-semibold text-lg text-[#37352F]">
+            {groupName}
           </span>
         </div>
         <Link
           href="/profile"
-          className="w-8 h-8 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+          className="w-8 h-8 bg-[#F7F7F5] rounded-full flex items-center justify-center text-[#9B9A97] hover:text-[#37352F] hover:bg-[#E3E3E3] transition-colors"
         >
           <User className="w-4 h-4" />
         </Link>

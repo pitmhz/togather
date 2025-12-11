@@ -38,12 +38,17 @@ export default async function MembersPage() {
     redirect("/login");
   }
 
-  // Fetch members with attendance history (include status and temp admin fields)
-  const { data: members } = await supabase
+  // Fetch members - simplified query to avoid column issues
+  // RLS policy handles visibility - all authenticated users can read
+  const { data: members, error: membersError } = await supabase
     .from("members")
-    .select("id, name, phone, email, avatar_url, status, unavailable_reason, unavailable_until, temp_admin_until, event_attendance(status, created_at)")
-    .eq("user_id", user.id)
+    .select("*")
     .order("name", { ascending: true });
+  
+  if (membersError) {
+    console.error("[MembersPage] Fetch error:", membersError);
+  }
+  console.log("[MembersPage] Fetched members count:", members?.length || 0);
 
   // Process members to add attendance dots
   const membersWithDots = (members || []).map((member: MemberWithAttendance) => {

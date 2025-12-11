@@ -2,12 +2,12 @@
 
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
-import { MoreHorizontal, Pencil, Trash2, Phone, AlertCircle, Crown, ShieldCheck, ShieldX } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, Phone, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { toast } from "sonner";
 
-import { updateMember, deleteMember, grantTempAdmin, revokeTempAdmin, type ActionState } from "./actions";
+import { updateMember, deleteMember, type ActionState } from "./actions";
 import { StatusDialog } from "./status-dialog";
 
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,6 @@ type Member = {
   status?: "available" | "unavailable";
   unavailable_reason?: string | null;
   unavailable_until?: string | null;
-  temp_admin_until?: string | null;
 };
 
 type MemberItemProps = {
@@ -109,41 +108,6 @@ export function MemberItem({ member, avatarUrl }: MemberItemProps) {
     });
   };
 
-  // Check if member is currently a temp admin
-  const isTempAdmin = member.temp_admin_until 
-    ? new Date(member.temp_admin_until) > new Date() 
-    : false;
-
-  const handleGrantTempAdmin = () => {
-    if (!member.email) {
-      toast.error("Member harus punya email terlebih dahulu. Edit member untuk menambahkan email.");
-      return;
-    }
-    if (!confirm(`Jadikan ${member.name} Acting Leader selama 24 jam?`)) return;
-
-    startTransition(async () => {
-      const result = await grantTempAdmin(member.id);
-      if (result?.success) {
-        toast.success(result.message);
-      } else {
-        toast.error(result?.message || "Gagal memberikan akses.");
-      }
-    });
-  };
-
-  const handleRevokeTempAdmin = () => {
-    if (!confirm(`Cabut akses Acting Leader dari ${member.name}?`)) return;
-
-    startTransition(async () => {
-      const result = await revokeTempAdmin(member.id);
-      if (result?.success) {
-        toast.success(result.message);
-      } else {
-        toast.error(result?.message || "Gagal mencabut akses.");
-      }
-    });
-  };
-
   return (
     <>
       <div className={`flex items-center justify-between p-3 bg-card border border-border rounded-lg ${
@@ -166,15 +130,7 @@ export function MemberItem({ member, avatarUrl }: MemberItemProps) {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5">
-              <p className="font-medium text-foreground truncate text-sm">{member.name}</p>
-              {isTempAdmin && (
-                <Badge className="text-[10px] px-1.5 py-0 bg-yellow-500 text-white border-0">
-                  <Crown className="w-3 h-3 mr-0.5" />
-                  Acting
-                </Badge>
-              )}
-            </div>
+            <p className="font-medium text-foreground truncate text-sm">{member.name}</p>
             {member.status === "unavailable" ? (
               <Badge variant="outline" className="text-xs bg-amber-100 text-amber-700 border-amber-300 mt-0.5">
                 ⛔ {member.unavailable_reason || "Tidak Tersedia"}
@@ -230,27 +186,6 @@ export function MemberItem({ member, avatarUrl }: MemberItemProps) {
                 <Trash2 className="w-4 h-4 mr-2" />
                 Hapus
               </DropdownMenuItem>
-              
-              {/* Temp Admin Controls */}
-              {isTempAdmin ? (
-                <DropdownMenuItem
-                  onClick={handleRevokeTempAdmin}
-                  className="text-amber-600 focus:text-amber-600"
-                  disabled={isPending}
-                >
-                  <ShieldX className="w-4 h-4 mr-2" />
-                  Cabut Akses Leader
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem
-                  onClick={handleGrantTempAdmin}
-                  className="text-indigo-600 focus:text-indigo-600"
-                  disabled={isPending}
-                >
-                  <ShieldCheck className="w-4 h-4 mr-2" />
-                  Jadikan Acting Leader
-                </DropdownMenuItem>
-              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

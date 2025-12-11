@@ -98,11 +98,10 @@ export default async function EventDetailPage({
   // FORCE FALLBACK: If data is null, use empty array
   const roles = rolesData || [];
 
-  // Fetch members for combobox (include status for smart filtering)
+  // Fetch members for combobox (RLS handles visibility)
   const { data: membersData } = await supabase
     .from("members")
     .select("id, name, status, unavailable_reason, unavailable_until")
-    .eq("user_id", user.id)
     .order("name", { ascending: true });
   
   const members = membersData || [];
