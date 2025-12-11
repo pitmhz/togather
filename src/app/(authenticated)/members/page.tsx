@@ -1,9 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { Users, UserPlus } from "lucide-react";
+import { Users } from "lucide-react";
+
+import { isLeader } from "@/lib/user-role";
 
 import { AddMemberDialog } from "./add-member-dialog";
-import { MemberItem } from "./member-item";
+import { MembersGrid } from "./members-grid";
 
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -16,6 +18,12 @@ type MemberWithAttendance = {
   id: string;
   name: string;
   phone: string | null;
+  email: string | null;
+  avatar_url: string | null;
+  status: "available" | "unavailable" | null;
+  unavailable_reason: string | null;
+  unavailable_until: string | null;
+  temp_admin_until: string | null;
   event_attendance: AttendanceRecord[];
 };
 
@@ -30,10 +38,10 @@ export default async function MembersPage() {
     redirect("/login");
   }
 
-  // Fetch members with attendance history
+  // Fetch members with attendance history (include status and temp admin fields)
   const { data: members } = await supabase
     .from("members")
-    .select("id, name, phone, event_attendance(status, created_at)")
+    .select("id, name, phone, email, avatar_url, status, unavailable_reason, unavailable_until, temp_admin_until, event_attendance(status, created_at)")
     .eq("user_id", user.id)
     .order("name", { ascending: true });
 
@@ -50,14 +58,20 @@ export default async function MembersPage() {
       id: member.id,
       name: member.name,
       phone: member.phone,
+      email: member.email,
+      avatar_url: member.avatar_url,
+      status: member.status || "available",
+      unavailable_reason: member.unavailable_reason,
+      unavailable_until: member.unavailable_until,
+      temp_admin_until: member.temp_admin_until,
       attendanceDots,
     };
   });
 
   return (
-    <main className="min-h-screen flex flex-col">
+    <main className="min-h-screen flex flex-col bg-slate-50 dark:bg-zinc-950">
       {/* Header */}
-      <header className="flex items-center justify-between p-4 border-b border-border">
+      <header className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-950 rounded-full flex items-center justify-center">
             <Users className="w-4 h-4 text-indigo-600" />
@@ -66,21 +80,13 @@ export default async function MembersPage() {
             Jemaat
           </span>
         </div>
-        <AddMemberDialog />
+        {isLeader(user.email) && <AddMemberDialog />}
       </header>
 
       {/* Content */}
       <div className="flex-1 p-4 pb-24">
-        <p className="text-muted-foreground text-sm mb-4">
-          {membersWithDots.length} anggota komsel
-        </p>
-
         {membersWithDots.length > 0 ? (
-          <div className="space-y-2">
-            {membersWithDots.map((member) => (
-              <MemberItem key={member.id} member={member} />
-            ))}
-          </div>
+          <MembersGrid members={membersWithDots} />
         ) : (
           /* Empty State */
           <Card className="border-dashed border-2 border-border rounded-lg">
@@ -101,3 +107,4 @@ export default async function MembersPage() {
     </main>
   );
 }
+

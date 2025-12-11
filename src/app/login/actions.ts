@@ -59,3 +59,25 @@ export async function logout() {
   await supabase.auth.signOut();
   redirect("/login");
 }
+
+export async function signInAsDev(email: string): Promise<LoginState> {
+  const supabase = await createClient();
+  
+  const HARDCODED_PASSWORD = "Tottenham5trophy@";
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password: HARDCODED_PASSWORD,
+  });
+
+  if (error) {
+    console.error("[signInAsDev] Error:", error);
+    return {
+      success: false,
+      message: error.message || "Login gagal. Pastikan password sudah diset.",
+    };
+  }
+
+  redirect("/dashboard");
+}
+

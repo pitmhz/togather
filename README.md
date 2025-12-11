@@ -1,57 +1,39 @@
-# Togather: Community Management PWA
+# Togather
 
-**Togather** is a specialized Micro-SaaS designed to streamline the coordination of Church Cell Groups (Komsel). Built with a **Mobile-First** approach, it eliminates the chaos of WhatsApp scheduling by centralizing event dates and role assignments (Worship Leader, Prayer, etc.) in one seamless Progressive Web App.
+**Togather** is a specialized Companion App for Community Groups (Komsel). Built Mobile-First, it helps Cell Group Leaders manage events, track attendance, and run interactive activities - all from their phone.
 
-![Project Status](https://img.shields.io/badge/Status-v0.5.0-success)
+![Project Status](https://img.shields.io/badge/Status-v1.0.0_Beta-success)
 ![Tech Stack](https://img.shields.io/badge/Built_With-Next.js_15_%2B_Supabase-black)
-![Methodology](https://img.shields.io/badge/Dev_Method-AI--Assisted_Vibecoding-purple)
-
-## 📚 Documentation
-
-- **[CHANGELOG.md](./CHANGELOG.md)** - Complete version history and feature log
-- **[documentation/](./documentation/)** - Screenshots, design decisions, and guides
-
-## ⚡ The "12-Hour Build" Challenge
-
-This project was built from scratch in **under 12 hours** as a case study in **"Vibecoding"** (AI-Augmented Development).
-
-Instead of traditional hand-coding, I acted as the **Lead Architect & Product Manager**, orchestrating Large Language Models to handle the implementation details while I focused on:
-* **System Architecture:** Designing the Scalable DB Schema on Supabase.
-* **Product Strategy:** Deciding on PWA over Native for zero-friction user adoption.
-* **Problem Solving:** Handling edge cases in Auth and Rate Limiting.
-* **UI/UX Direction:** Enforcing a centered mobile-native layout on desktop.
-
-## 🛠 Tech Stack
-
-| Category | Technology |
-|----------|------------|
-| Framework | [Next.js 15](https://nextjs.org/) (App Router & Server Actions) |
-| Language | TypeScript |
-| Database & Auth | [Supabase](https://supabase.com/) (PostgreSQL + Magic Link Auth) |
-| UI Library | [Shadcn/UI](https://ui.shadcn.com/) + Tailwind CSS v4 |
-| Animations | Framer Motion |
-| Icons | Lucide React |
-| Deployment | Vercel |
 
 ## ✨ Features
 
-### Core Features
-- **Zero-Password Login** - Authentication via Email Magic Link (elderly-friendly)
-- **Mobile-First Experience** - PWA-ready design that feels native on iOS/Android
-- **Event Dashboard** - Centralized view of upcoming meetings with status badges
-- **Role Management** - Create events and assign roles to members
-- **Attendance System** - Track Hadir/Ijin with visual analytics
+### 📅 Event Management
+- Create Regular Komsel or Outing/Gabungan events
+- Auto-seeded role templates (WL, Prayer, Song Leader)
+- Google Maps integration for venue locations
+- Share event info with one tap
 
-### Live Tools 🎮
-- **Wheel of Fellowship** - Roulette spinner for random member selection with confetti!
-- **Deep Talk Cards** - Ice breaker questions with card flip animations
+### 👥 People Engine
+- Member directory with status management
+- Set members as Available/Unavailable with reason
+- Visual attendance history (last 5 events)
+- Auto-generated avatars
 
-### People Engine 👥
-- **Member Directory** - CRUD for congregation members
-- **Smart Role Assignment** - Combobox with attendance history dots
-- **Coach Report** - Copy formatted attendance report to clipboard
+### 🎯 Smart Role Assignment
+- Pinned CG Leader card (read-only)
+- Unavailable members shown disabled with reason
+- Prevents double-booking in same event
 
-## 🚀 Getting Started
+### 🎮 Gamified Tools
+- **⚡ Swipe Attendance** - Tinder-style cards for fun attendance taking
+- **🎡 Wheel of Fellowship** - Spin to pick random members
+- **🃏 Ice Breaker Cards** - Deep Talk questions with flip animations
+
+### 📊 Reporting
+- Copy formatted Coach Report to clipboard
+- Visual attendance dots per member
+
+## 🚀 Local Setup
 
 ```bash
 # Clone the repo
@@ -63,10 +45,6 @@ npm install
 
 # Setup environment variables
 cp .env.example .env.local
-# Edit .env.local with your Supabase credentials
-
-# Run development server
-npm run dev
 ```
 
 ### Environment Variables
@@ -76,25 +54,48 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-## 📊 Database Schema
-
+### Database Setup
+Run these migrations in Supabase SQL editor:
+```sql
+-- Member status fields
+ALTER TABLE members 
+  ADD COLUMN IF NOT EXISTS avatar_url TEXT,
+  ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'available' CHECK (status IN ('available', 'unavailable')),
+  ADD COLUMN IF NOT EXISTS unavailable_reason TEXT,
+  ADD COLUMN IF NOT EXISTS unavailable_until DATE;
 ```
-events          → Event details (title, date, location, type)
-event_roles     → Roles per event (WL, Prayer, etc.)
-members         → Congregation directory
-event_attendance → Attendance tracking per event
-profiles        → Leader identity (name, phone)
+
+### Run Development Server
+```bash
+npm run dev
 ```
 
-## 🧠 Lessons Learned
+## 🛠 Tech Stack
 
-* **PWA > Native:** For community apps, removing the "Install from PlayStore" barrier increases adoption significantly.
-* **AI as a Force Multiplier:** Using AI allowed focusing on high-level logic while AI handles implementation details.
-* **Constraints Breed Speed:** Killing features like "Recurring Events" and "In-app Chat" was crucial to shipping a functional MVP in 12 hours.
+| Category | Technology |
+|----------|------------|
+| Framework | Next.js 15 (App Router & Server Actions) |
+| Language | TypeScript |
+| Database & Auth | Supabase (PostgreSQL + Magic Link) |
+| UI Library | Shadcn/UI + Tailwind CSS v4 |
+| Animations | Framer Motion |
+| Deployment | Vercel |
+
+## ⚠️ Known Limitations
+
+- **Single Leader Mode** - Currently optimized for one leader per account
+- **No Multi-CG Support** - Each account manages one cell group
+- **No Recurring Events** - Events must be created individually
+- **UI Avatars Only** - No custom photo uploads yet
+
+## 📚 Documentation
+
+- [CHANGELOG.md](./CHANGELOG.md) - Version history
+- [documentation/](./documentation/) - Screenshots and guides
 
 ## 📝 License
 
 MIT License - See [LICENSE](./LICENSE) for details.
 
 ---
-*Built with ❤️ and ☕ during a legendary 12-hour build session*
+*Built with ❤️ for Community Group Leaders*

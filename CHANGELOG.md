@@ -1,127 +1,59 @@
 # Changelog
 
-All notable changes to **Togather** will be documented in this file.
+All notable changes to Togather are documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.0.0] - 2025-12-12 - The "Serlie" Release 🎉
 
-## [Unreleased]
+First Beta release for real-world testing with Community Group leaders.
 
-### Roadmap
-- Push notifications for event reminders
-- Dark mode toggle in settings
-- Export attendance data to CSV
-- Integration with Google Calendar
-- Multi-language support (EN/ID toggle)
-- Role templates (save frequently used role sets)
+### ✨ Features
 
----
+#### Dashboard & Navigation
+- **Mobile-First Dashboard** with horizontal carousel slider
+- **Glassmorphism Bottom Nav** with smooth transitions
+- **Pop-out Cards** with shadows that bleed past containers
 
-## [0.5.0] - 2025-12-11
+#### Event Management
+- **Regular Komsel Events** with auto-seeded role templates (WL, Prayer, Song Leader)
+- **Outing/Gabungan Events** with Google Maps integration
+- **Share Button** for quick event info distribution
+- **Coach Report Generator** - Copy formatted attendance to clipboard
 
-### Added - UI/UX Polish & Leader Identity
-- **Leader Profile Page** (`/profile`) - Edit full name and phone number
-- **Profiles Table** - Database schema for leader identity
-- **Coach Report Enhancement** - Uses leader's full_name instead of email
-- **Dashboard Revamp** - Compact cards with gap-4 spacing, rounded-lg corners
-- **Past Events Section** - "Riwayat" with grayed-out styling for archived events
-- **Members Attendance Dots** - Visual indicators (🟢/🔴) for recent attendance history
-- **Icon-only Add Button** - Minimized member add button in header
-- **Outing Mode** - Toggle for location handling with Google Maps link support
-- **Event Duplication** - DuplicateButton component (ready for integration)
+#### Smart Role Assignment
+- **Virtual CG Leader** card pinned at top (read-only)
+- **Availability Filtering** - Unavailable members shown disabled with reason
+- **Already-Assigned Prevention** - Members can't be double-booked in same event
+- **Attendance Dots** - Visual history in member combobox
 
-### Changed
-- Event cards now use `flex flex-col gap-4` for reliable 16px spacing
-- Time picker simplified to hourly intervals (13:00-21:00)
-- Location input defaults to "Via House" for non-outing events
+#### People Engine
+- **Member Directory** with 2-column grid layout
+- **Status Management** - Set members as Available/Unavailable
+- **Unavailable Reason & Date** - "Dinas Luar Kota (sampai 15 Des)"
+- **UI Avatars** - Auto-generated profile pictures
 
----
+#### Gamified Tools (Live Tools Tab)
+- **⚡ Swipe Attendance** - Tinder-style cards for fun attendance taking
+- **🎡 Wheel of Fellowship** - Spin to pick random members with confetti
+- **🃏 Ice Breaker Cards** - Deep Talk questions with flip animations
 
-## [0.4.0] - 2025-12-11
+### 🎨 UI/UX Polish
+- Off-white page backgrounds (`bg-slate-50`)
+- White cards with subtle borders and shadows
+- Consistent header styling across all pages
+- Smooth animations with Framer Motion
 
-### Added - Live Tools
-- **Tools Page** (`/tools`) - New tab in bottom navigation
-- **Wheel of Fellowship** - Roulette spinner for random attendee selection
-  - Fetches attendees marked as "Hadir" from latest event
-  - Animated name cycling with slowdown effect
-  - Confetti explosion on winner selection (canvas-confetti)
-- **Deep Talk Cards** - Ice breaker question cards
-  - 15 curated fellowship questions
-  - Card flip animation (Framer Motion)
-  - Progress tracking for used questions
-- **Tab Interface** - Roda Undian | Kartu Sharing
-
-### Dependencies
-- Added `framer-motion` for animations
-- Added `canvas-confetti` for celebration effects
+### 🗃️ Database Schema
+- `events` - Event details with Regular/Gabungan types
+- `event_roles` - Auto-seeded role assignments
+- `members` - With status, unavailable_reason, unavailable_until, avatar_url
+- `event_attendance` - Presence tracking
+- `profiles` - Leader identity
 
 ---
 
-## [0.3.0] - 2025-12-11
+## [0.5.0] - 2025-12-08 - Initial PWA Foundation
 
-### Added - The People Engine
-- **Members Directory** (`/members`) - CRUD for congregation members
-- **Member Combobox** - Smart role assignment with member selection
-- **Attendance System** - Mark members as Hadir/Ijin per event
-- **Attendance List Component** - Interactive toggle buttons with summary
-- **Coach Report Button** - Copy formatted attendance report to clipboard
-- **Member Analytics** - Attendance dots in combobox showing recent history
-- **Event Types** - Regular vs Gabungan (Joint Service) events
-- **Marketing Blast** - WhatsApp template for Gabungan events
-
-### Database
-- `members` table with RLS policies
-- `event_attendance` table for tracking
-- `event_roles.member_id` foreign key
-
----
-
-## [0.2.0] - 2025-12-11
-
-### Added - Core Features
-- **Event CRUD** - Create, read, update, delete events
-- **Role Management** - Add/edit/delete roles per event
-- **Role Assignment** - Assign members to roles with filled status
-- **WhatsApp Share** - Share event details via WhatsApp
-- **Status Badges** - Draft / Butuh Petugas / Siap Melayani
-- **Event Detail Page** - Full event information with role list
-
-### UI Components
-- Bottom Navigation (Home, Buat, Tools, Jemaat)
-- Date-Time Picker with calendar and time slots
-- Dialog components for forms
-
----
-
-## [0.1.0] - 2025-12-11
-
-### Added - The Foundation
-- **Next.js 15** setup with App Router
-- **Supabase Authentication** - Magic Link (passwordless)
-- **Database Schema**
-  - `events` table with RLS
-  - `event_roles` table with RLS
-- **Protected Routes** - Middleware-based auth guard
-- **Mobile-First Layout** - max-width 480px container
-- **Design System** - Tailwind CSS + shadcn/ui components
-- **Dark Mode Support** - System-based theme
-
-### Tech Stack
-- Next.js 15 (Turbopack)
-- React 19
-- TypeScript
-- Supabase (Auth + Database)
-- Tailwind CSS v4
-- shadcn/ui components
-- Lucide React icons
-
----
-
-## Session Stats
-
-📅 **Date:** December 11, 2025  
-⏱️ **Duration:** ~12 hours  
-🔧 **Files Created/Modified:** 50+  
-🎨 **Components Built:** 25+  
-📊 **Database Tables:** 5  
-🚀 **Production URL:** https://togather.vercel.app
+- Basic event CRUD
+- Member management
+- Simple attendance tracking
+- Magic Link authentication

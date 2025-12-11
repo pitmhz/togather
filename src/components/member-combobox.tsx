@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronsUpDown, UserPlus } from "lucide-react";
+import { Check, ChevronsUpDown, UserPlus, AlertCircle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -22,16 +22,15 @@ import {
 type Member = {
   id: string;
   name: string;
-};
-
-type AttendanceRecord = {
-  member_id: string;
-  status: "present" | "absent";
+  status?: "available" | "unavailable" | null;
+  unavailable_reason?: string | null;
+  unavailable_until?: string | null;
 };
 
 type MemberComboboxProps = {
   members: Member[];
   memberAttendanceStats?: { [memberId: string]: ("present" | "absent" | "unknown")[] };
+  excludeMemberIds?: string[]; // Members already assigned to other roles in this event
   value: string;
   onChange: (value: string, memberId?: string) => void;
   placeholder?: string;
@@ -60,6 +59,7 @@ function AttendanceDots({ stats }: { stats: ("present" | "absent" | "unknown")[]
 export function MemberCombobox({
   members,
   memberAttendanceStats = {},
+  excludeMemberIds = [],
   value,
   onChange,
   placeholder = "Pilih atau ketik nama...",
@@ -91,8 +91,18 @@ export function MemberCombobox({
     }
   };
 
+  // Filter members based on input
   const filteredMembers = members.filter((member) =>
     member.name.toLowerCase().includes(inputValue.toLowerCase())
+  );
+
+  // Separate available and unavailable members
+  const availableMembers = filteredMembers.filter(
+    (m) => m.status !== "unavailable" && !excludeMemberIds.includes(m.id)
+  );
+  
+  const unavailableMembers = filteredMembers.filter(
+    (m) => m.status === "unavailable" || excludeMemberIds.includes(m.id)
   );
 
   const isNewName = inputValue && !members.some(
@@ -135,32 +145,66 @@ export function MemberCombobox({
                 "Tidak ada jemaat ditemukan."
               )}
             </CommandEmpty>
-            <CommandGroup heading="Jemaat">
-              {filteredMembers.map((member) => {
-                const stats = memberAttendanceStats[member.id] || [];
-                return (
-                  <CommandItem
-                    key={member.id}
-                    value={member.name}
-                    onSelect={() => handleSelect(member)}
-                    className="flex items-center justify-between"
-                  >
-                    <span className="flex items-center">
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          inputValue.toLowerCase() === member.name.toLowerCase()
-                            ? "opacity-100"
-                            : "opacity-0"
-                        )}
-                      />
-                      {member.name}
-                    </span>
-                    <AttendanceDots stats={stats} />
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
+            
+            {/* Available Members */}
+            {availableMembers.length > 0 && (
+              <CommandGroup heading="Tersedia">
+                {availableMembers.map((member) => {
+                  const stats = memberAttendanceStats[member.id] || [];
+                  return (
+                    <CommandItem
+                      key={member.id}
+                      value={member.name}
+                      onSelect={() => handleSelect(member)}
+                      className="flex items-center justify-between"
+                    >
+                      <span className="flex items-center">
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            inputValue.toLowerCase() === member.name.toLowerCase()
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                        {member.name}
+                      </span>
+                      <AttendanceDots stats={stats} />
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
+
+            {/* Unavailable Members (Disabled) */}
+            {unavailableMembers.length > 0 && (
+              <CommandGroup heading="Tidak Tersedia">
+                {unavailableMembers.map((member) => {
+                  const isExcluded = excludeMemberIds.includes(member.id);
+                  const reason = isExcluded 
+                    ? "Sudah ditugaskan" 
+                    : member.unavailable_reason || "Tidak tersedia";
+                  
+                  return (
+                    <CommandItem
+                      key={member.id}
+                      value={member.name}
+                      disabled
+                      className="flex items-center justify-between opacity-50 cursor-not-allowed"
+                    >
+                      <span className="flex items-center">
+                        <AlertCircle className="mr-2 h-4 w-4 text-amber-500" />
+                        {member.name}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        ({reason})
+                      </span>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
+
             {isNewName && (
               <CommandGroup heading="Nama Baru">
                 <CommandItem
@@ -181,3 +225,4 @@ export function MemberCombobox({
     </Popover>
   );
 }
+

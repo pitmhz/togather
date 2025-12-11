@@ -1,22 +1,14 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
-import { Users } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect } from "react";
 
-import { login, type LoginState } from "./actions";
+import { login, signInAsDev, type LoginState } from "./actions";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -24,10 +16,44 @@ function SubmitButton() {
   return (
     <Button
       type="submit"
-      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+      className="w-full h-11 bg-zinc-900 hover:bg-zinc-800 text-white font-medium rounded-md"
       disabled={pending}
     >
-      {pending ? "Mengirim..." : "Kirim Link Masuk"}
+      {pending ? "Mengirim..." : "Lanjutkan dengan Email"}
+    </Button>
+  );
+}
+
+function DevLoginButton({ 
+  email, 
+  label, 
+  icon 
+}: { 
+  email: string; 
+  label: string; 
+  icon: string;
+}) {
+  const [isPending, startTransition] = useTransition();
+
+  const handleClick = () => {
+    startTransition(async () => {
+      const result = await signInAsDev(email);
+      if (result?.success === false) {
+        toast.error(result.message);
+      }
+    });
+  };
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      className="w-full h-11 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-700 font-medium rounded-md"
+      onClick={handleClick}
+      disabled={isPending}
+    >
+      <span className="mr-2">{icon}</span>
+      {isPending ? "Logging in..." : label}
     </Button>
   );
 }
@@ -44,48 +70,66 @@ export default function LoginPage() {
   }, [state]);
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-4 py-8">
-      <Card className="w-full border-0 shadow-none bg-transparent">
-        <CardHeader className="text-center space-y-4 pb-2">
-          <div className="mx-auto w-14 h-14 bg-indigo-100 dark:bg-indigo-950 rounded-full flex items-center justify-center">
-            <Users className="w-7 h-7 text-indigo-600" />
-          </div>
-          <div className="space-y-2">
-            <CardTitle className="text-2xl font-semibold font-heading text-foreground">
-              Selamat Datang di Togather
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Masukkan email untuk menerima link masuk
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-4">
-          <form action={formAction} className="space-y-4">
-            <div className="space-y-2">
-              <label
-                htmlFor="email"
-                className="text-sm font-medium text-foreground"
-              >
-                Alamat Email
-              </label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="you@example.com"
-                required
-                className="w-full"
-                autoComplete="email"
-              />
-            </div>
-            <SubmitButton />
-          </form>
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            Tanpa password — kami akan kirim link aman ke email kamu.
+    <main className="min-h-screen flex flex-col items-center pt-16 md:pt-24 px-4 bg-white dark:bg-zinc-950">
+      <div className="w-full max-w-[400px] space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-3">
+          <div className="text-5xl mb-4">🤝</div>
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white">
+            Log in to Togather
+          </h1>
+          <p className="text-zinc-500 text-sm">
+            Kelola jadwal dan absensi komsel dengan mudah.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Magic Link Form */}
+        <form action={formAction} className="space-y-3">
+          <Input
+            name="email"
+            type="email"
+            placeholder="Masukkan email kamu"
+            required
+            autoComplete="email"
+            className="h-11 px-4 border-zinc-200 rounded-md focus:ring-zinc-900 focus:border-zinc-900"
+          />
+          <SubmitButton />
+        </form>
+
+        {/* Divider */}
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-zinc-200 dark:border-zinc-700" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-white dark:bg-zinc-950 px-2 text-zinc-500">
+              atau
+            </span>
+          </div>
+        </div>
+
+        {/* Dev Login Buttons */}
+        <div className="space-y-3">
+          <DevLoginButton 
+            email="pietermardi@gmail.com" 
+            label="Login as Leader (Serlie)" 
+            icon="👤"
+          />
+          <DevLoginButton 
+            email="212011557@stis.ac.id" 
+            label="Login as Member" 
+            icon="👋"
+          />
+        </div>
+
+        {/* Footer */}
+        <p className="text-center text-xs text-zinc-400">
+          Dengan melanjutkan, kamu menyetujui{" "}
+          <span className="underline cursor-pointer">Ketentuan Layanan</span>
+          {" "}dan{" "}
+          <span className="underline cursor-pointer">Kebijakan Privasi</span>.
+        </p>
+      </div>
     </main>
   );
 }
-

@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
-import { ArrowLeft, CalendarDays, MapPin, Users, ClipboardList, Megaphone } from "lucide-react";
+import { ArrowLeft, CalendarDays, MapPin, Users, ClipboardList, Megaphone, Rocket, Crown } from "lucide-react";
 import Link from "next/link";
 
 import { ShareButton } from "./share-button";
@@ -98,14 +98,14 @@ export default async function EventDetailPage({
   // FORCE FALLBACK: If data is null, use empty array
   const roles = rolesData || [];
 
-  // Fetch members for combobox
+  // Fetch members for combobox (include status for smart filtering)
   const { data: membersData } = await supabase
     .from("members")
-    .select("id, name")
+    .select("id, name, status, unavailable_reason, unavailable_until")
     .eq("user_id", user.id)
     .order("name", { ascending: true });
   
-  const members: Member[] = membersData || [];
+  const members = membersData || [];
 
   // Fetch attendance records
   const { data: attendanceData } = await supabase
@@ -197,21 +197,36 @@ export default async function EventDetailPage({
             </h2>
           </div>
 
-          {/* Roles List */}
+          {/* Virtual CG Leader Card (Pinned, Read-only) */}
+          <div className="mb-2">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-indigo-50 dark:bg-indigo-950 border border-indigo-200 dark:border-indigo-800">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                  <Crown className="w-4 h-4 text-indigo-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">CG Leader</p>
+                  <p className="font-medium text-foreground">{leaderName}</p>
+                </div>
+              </div>
+              <Badge className="bg-indigo-600 text-white text-xs">Tetap</Badge>
+            </div>
+          </div>
+
+          {/* Roles List (Filter out CG Leader if exists) */}
           <div className="space-y-2 mb-4">
             {roles && roles.length > 0 ? (
-              roles.map((role: Role) => (
-                <RoleItem key={role.id} role={role} eventId={id} members={members} />
-              ))
+              roles
+                .filter((role: Role) => role.role_name.toLowerCase() !== "cg leader")
+                .map((role: Role) => (
+                  <RoleItem key={role.id} role={role} eventId={id} members={members} />
+                ))
             ) : (
-              <div className="text-center py-8 text-muted-foreground text-sm">
-                Belum ada petugas. Tambahkan posisi baru di bawah!
+              <div className="text-center py-4 text-muted-foreground text-sm">
+                Tidak ada posisi petugas lainnya.
               </div>
             )}
           </div>
-
-          {/* Add Role Button */}
-          <AddRoleDialog eventId={id} />
         </section>
         )}
 

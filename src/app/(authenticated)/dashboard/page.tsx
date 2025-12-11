@@ -55,7 +55,7 @@ function EventCard({ event, isPast = false, isSlider = false }: { event: EventWi
   if (isSlider) {
     return (
       <Link href={`/events/${event.id}`} className="block h-full">
-        <Card className="border-border transition-all h-full bg-slate-50/50 dark:bg-zinc-900 border-0 shadow-[0_4px_20px_rgb(0,0,0,0.08)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] cursor-pointer">
+        <Card className="transition-all h-full bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md cursor-pointer">
           <CardContent className="p-5 h-full flex flex-col relative">
             {/* Top: Date & Status */}
             <div className="flex justify-between items-start mb-4">
@@ -174,11 +174,10 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Fetch ALL events (both past and upcoming)
+  // Fetch ALL events (RLS now allows all authenticated users to read)
   const { data: allEvents } = await supabase
     .from("events")
     .select("id, title, topic, event_date, location, event_roles(is_filled)")
-    .eq("user_id", user.id)
     .order("event_date", { ascending: true });
 
   // Separate into upcoming and past based on current date
@@ -201,7 +200,7 @@ export default async function DashboardPage() {
   const displayName = userEmail.split("@")[0];
 
   return (
-    <main className="min-h-screen flex flex-col">
+    <main className="min-h-screen flex flex-col bg-slate-50 dark:bg-zinc-950">
       {/* Header */}
       <header className="flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center gap-2">
@@ -244,11 +243,11 @@ export default async function DashboardPage() {
                 align: "start",
                 loop: false,
               }}
-              className="w-full"
+              className="w-full overflow-visible py-2"
             >
-              <CarouselContent className="-ml-2">
+              <CarouselContent className="-ml-4">
                 {upcomingEvents.map((event) => (
-                  <CarouselItem key={event.id} className="pl-2 basis-[90%]">
+                  <CarouselItem key={event.id} className="pl-4 basis-[90%]">
                     <EventCard event={event} isSlider />
                   </CarouselItem>
                 ))}
