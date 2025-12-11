@@ -40,10 +40,13 @@ export default async function ToolsPage() {
     if (attendanceData) {
       attendees = attendanceData
         .filter((a) => a.members)
-        .map((a) => ({
-          id: (a.members as { id: string; name: string }).id,
-          name: (a.members as { id: string; name: string }).name,
-        }));
+        .map((a) => {
+          const member = Array.isArray(a.members) ? a.members[0] : a.members;
+          return {
+            id: (member as { id: string; name: string }).id,
+            name: (member as { id: string; name: string }).name,
+          };
+        });
     }
   }
 
