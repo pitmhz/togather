@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { updateRoleAssignment, deleteRole, type ActionState } from "./actions";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -18,12 +17,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { MemberCombobox } from "@/components/member-combobox";
 
 type Role = {
   id: string;
   role_name: string;
   assignee_name: string | null;
+  member_id?: string | null;
   is_filled: boolean;
+};
+
+type Member = {
+  id: string;
+  name: string;
 };
 
 function SubmitButton() {
@@ -40,9 +46,19 @@ function SubmitButton() {
   );
 }
 
-export function RoleItem({ role, eventId }: { role: Role; eventId: string }) {
+export function RoleItem({ 
+  role, 
+  eventId,
+  members = []
+}: { 
+  role: Role; 
+  eventId: string;
+  members?: Member[];
+}) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [assigneeName, setAssigneeName] = useState(role.assignee_name || "");
+  const [memberId, setMemberId] = useState<string | undefined>(role.member_id || undefined);
 
   const updateRoleWithIds = updateRoleAssignment.bind(null, role.id, eventId);
   const [state, formAction] = useActionState<ActionState, FormData>(
@@ -58,6 +74,19 @@ export function RoleItem({ role, eventId }: { role: Role; eventId: string }) {
       toast.error(state.message);
     }
   }, [state]);
+
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (open) {
+      setAssigneeName(role.assignee_name || "");
+      setMemberId(role.member_id || undefined);
+    }
+  }, [open, role.assignee_name, role.member_id]);
+
+  const handleMemberChange = (name: string, selectedMemberId?: string) => {
+    setAssigneeName(name);
+    setMemberId(selectedMemberId);
+  };
 
   const handleDelete = () => {
     if (!confirm("Hapus posisi ini?")) return;
@@ -112,18 +141,21 @@ export function RoleItem({ role, eventId }: { role: Role; eventId: string }) {
             Ubah: {role.role_name}
           </DialogTitle>
           <DialogDescription>
-            Tunjuk seseorang untuk posisi ini atau kosongkan
+            Pilih jemaat atau ketik nama baru
           </DialogDescription>
         </DialogHeader>
         <form action={formAction} className="space-y-4 mt-4">
+          {/* Hidden inputs for form submission */}
+          <input type="hidden" name="assignee_name" value={assigneeName} />
+          <input type="hidden" name="member_id" value={memberId || ""} />
+          
           <div className="space-y-2">
-            <Label htmlFor="assignee_name">Nama Petugas</Label>
-            <Input
-              id="assignee_name"
-              name="assignee_name"
-              placeholder="Masukkan nama (atau kosongkan)"
-              defaultValue={role.assignee_name || ""}
-              autoFocus
+            <Label>Nama Petugas</Label>
+            <MemberCombobox
+              members={members}
+              value={assigneeName}
+              onChange={handleMemberChange}
+              placeholder="Pilih atau ketik nama..."
             />
           </div>
           <div className="flex gap-2">

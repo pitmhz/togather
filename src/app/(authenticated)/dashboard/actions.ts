@@ -30,6 +30,9 @@ export async function createEvent(
   const topic = formData.get("topic") as string;
   const eventDate = formData.get("event_date") as string;
   const location = formData.get("location") as string;
+  const eventType = formData.get("event_type") as string || "regular";
+  const isOuting = formData.get("is_outing") === "true";
+  const mapsLink = formData.get("maps_link") as string;
 
   if (!title || !eventDate) {
     return {
@@ -44,6 +47,9 @@ export async function createEvent(
     topic: topic || null,
     event_date: eventDate,
     location: location || null,
+    event_type: eventType,
+    is_outing: isOuting,
+    maps_link: mapsLink || null,
   });
 
   if (error) {

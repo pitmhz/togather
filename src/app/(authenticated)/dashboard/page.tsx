@@ -2,22 +2,47 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
-import { LogOut, Users, CalendarDays, MapPin } from "lucide-react";
+import { Users, CalendarDays, MapPin, User } from "lucide-react";
 import Link from "next/link";
 
-import { signOut } from "./actions";
-import { CreateEventDialog } from "./create-event-dialog";
-
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
-type Event = {
+type EventWithRoles = {
   id: string;
   title: string;
   topic: string | null;
   event_date: string;
   location: string | null;
+  event_roles: { is_filled: boolean }[];
 };
+
+function getStatusBadge(roles: { is_filled: boolean }[]) {
+  const totalRoles = roles.length;
+  const filledRoles = roles.filter((r) => r.is_filled).length;
+
+  if (totalRoles === 0) {
+    return (
+      <Badge variant="secondary" className="text-xs">
+        Draft
+      </Badge>
+    );
+  }
+
+  if (filledRoles < totalRoles) {
+    return (
+      <Badge variant="destructive" className="text-xs bg-amber-500 hover:bg-amber-600">
+        Butuh Petugas
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge className="text-xs bg-emerald-500 hover:bg-emerald-600">
+      Siap Melayani
+    </Badge>
+  );
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -30,10 +55,10 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Fetch events for current user, sorted by date
+  // Fetch events with role counts
   const { data: events } = await supabase
     .from("events")
-    .select("id, title, topic, event_date, location")
+    .select("id, title, topic, event_date, location, event_roles(is_filled)")
     .eq("user_id", user.id)
     .gte("event_date", new Date().toISOString())
     .order("event_date", { ascending: true });
@@ -53,12 +78,12 @@ export default async function DashboardPage() {
             Togather
           </span>
         </div>
-        <form action={signOut}>
-          <Button variant="ghost" size="sm" className="text-muted-foreground">
-            <LogOut className="w-4 h-4 mr-1" />
-            Keluar
-          </Button>
-        </form>
+        <Link
+          href="/profile"
+          className="w-8 h-8 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <User className="w-4 h-4" />
+        </Link>
       </header>
 
       {/* Content */}
@@ -81,7 +106,7 @@ export default async function DashboardPage() {
 
           {events && events.length > 0 ? (
             <div className="space-y-3">
-              {events.map((event: Event) => (
+              {events.map((event: EventWithRoles) => (
                 <Link key={event.id} href={`/events/${event.id}`}>
                   <Card className="border-border hover:border-indigo-300 dark:hover:border-indigo-800 transition-colors cursor-pointer">
                   <CardContent className="p-4">
@@ -89,7 +114,7 @@ export default async function DashboardPage() {
                       {/* Date Badge */}
                       <div className="flex-shrink-0 w-12 h-12 bg-indigo-50 dark:bg-indigo-950 rounded-lg flex flex-col items-center justify-center">
                         <span className="text-xs font-medium text-indigo-600 uppercase">
-                          {format(new Date(event.event_date), "EEE")}
+                          {format(new Date(event.event_date), "EEE", { locale: idLocale })}
                         </span>
                         <span className="text-lg font-bold text-indigo-600">
                           {format(new Date(event.event_date), "d")}
@@ -98,18 +123,21 @@ export default async function DashboardPage() {
 
                       {/* Event Details */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-foreground truncate">
-                          {event.title}
-                        </h3>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-medium text-foreground truncate">
+                            {event.title}
+                          </h3>
+                          {getStatusBadge(event.event_roles || [])}
+                        </div>
                         {event.topic && (
-                          <p className="text-sm text-muted-foreground truncate mt-0.5">
+                          <p className="text-sm text-muted-foreground truncate">
                             {event.topic}
                           </p>
                         )}
                         <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <CalendarDays className="w-3 h-3" />
-                            {format(new Date(event.event_date), "h:mm a")}
+                            {format(new Date(event.event_date), "HH:mm")}
                           </span>
                           {event.location && (
                             <span className="flex items-center gap-1">
@@ -143,9 +171,6 @@ export default async function DashboardPage() {
           )}
         </section>
       </div>
-
-      {/* Floating Action Button */}
-      <CreateEventDialog />
     </main>
   );
 }

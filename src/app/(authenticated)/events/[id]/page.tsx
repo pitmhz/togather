@@ -2,15 +2,19 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
-import { ArrowLeft, CalendarDays, MapPin, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, MapPin, Users, ClipboardList, Megaphone } from "lucide-react";
 import Link from "next/link";
 
 import { ShareButton } from "./share-button";
 import { AddRoleDialog } from "./add-role-dialog";
 import { RoleItem } from "./role-item";
+import { AttendanceList } from "./attendance-list";
+import { CopyReportButton } from "./copy-report-button";
+import { MarketingBlast } from "./marketing-blast";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 // STRICT: Force dynamic rendering - disable all caching
 export const dynamic = "force-dynamic";
@@ -20,7 +24,18 @@ type Role = {
   id: string;
   role_name: string;
   assignee_name: string | null;
+  member_id?: string | null;
   is_filled: boolean;
+};
+
+type Member = {
+  id: string;
+  name: string;
+};
+
+type Attendance = {
+  member_id: string;
+  status: "present" | "absent";
 };
 
 // Next.js 15: params is a Promise
@@ -83,6 +98,24 @@ export default async function EventDetailPage({
   // FORCE FALLBACK: If data is null, use empty array
   const roles = rolesData || [];
 
+  // Fetch members for combobox
+  const { data: membersData } = await supabase
+    .from("members")
+    .select("id, name")
+    .eq("user_id", user.id)
+    .order("name", { ascending: true });
+  
+  const members: Member[] = membersData || [];
+
+  // Fetch attendance records
+  const { data: attendanceData } = await supabase
+    .from("event_attendance")
+    .select("member_id, status")
+    .eq("event_id", id);
+  
+  const attendance: Attendance[] = (attendanceData || []) as Attendance[];
+
+  const userEmail = user.email || "User";
   const eventDate = new Date(event.event_date);
   const formattedDate = format(eventDate, "EEEE, d MMMM yyyy 'pukul' HH:mm", { locale: idLocale });
 
@@ -104,7 +137,7 @@ export default async function EventDetailPage({
       </header>
 
       {/* Content */}
-      <div className="flex-1 p-4 pb-6">
+      <div className="flex-1 p-4 pb-24">
         {/* Event Info Card */}
         <Card className="relative overflow-hidden border-2 border-indigo-200 dark:border-indigo-900 mb-6">
           {/* Gradient accent */}
@@ -133,10 +166,22 @@ export default async function EventDetailPage({
                 </div>
               )}
             </div>
+            {/* Maps Link Button */}
+            {event.maps_link && (
+              <a
+                href={event.maps_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 rounded-lg text-sm font-medium hover:bg-emerald-100 dark:hover:bg-emerald-900 transition-colors"
+              >
+                📍 Buka Peta
+              </a>
+            )}
           </CardContent>
         </Card>
 
-        {/* Roles Section */}
+        {/* Conditional: Roles Section (Regular only) */}
+        {event.event_type !== "gabungan" && (
         <section>
           <div className="flex items-center gap-2 mb-4">
             <Users className="w-4 h-4 text-indigo-600" />
@@ -149,7 +194,7 @@ export default async function EventDetailPage({
           <div className="space-y-2 mb-4">
             {roles && roles.length > 0 ? (
               roles.map((role: Role) => (
-                <RoleItem key={role.id} role={role} eventId={id} />
+                <RoleItem key={role.id} role={role} eventId={id} members={members} />
               ))
             ) : (
               <div className="text-center py-8 text-muted-foreground text-sm">
@@ -160,6 +205,49 @@ export default async function EventDetailPage({
 
           {/* Add Role Button */}
           <AddRoleDialog eventId={id} />
+        </section>
+        )}
+
+        {/* Conditional: Marketing Blast (Gabungan only) */}
+        {event.event_type === "gabungan" && (
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <Megaphone className="w-4 h-4 text-indigo-600" />
+            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Marketing
+            </h2>
+          </div>
+          <MarketingBlast
+            event={event}
+            eventUrl={typeof window !== "undefined" ? window.location.href : `https://togather.vercel.app/events/${id}`}
+          />
+        </section>
+        )}
+
+        {/* Attendance Section */}
+        <section className="mt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <ClipboardList className="w-4 h-4 text-indigo-600" />
+            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Absensi
+            </h2>
+          </div>
+
+          <AttendanceList
+            eventId={id}
+            members={members}
+            attendance={attendance}
+          />
+
+          {/* Copy Report Button */}
+          <div className="mt-4">
+            <CopyReportButton
+              event={event}
+              leaderName={userEmail.split("@")[0]}
+              members={members}
+              attendance={attendance}
+            />
+          </div>
         </section>
       </div>
     </main>

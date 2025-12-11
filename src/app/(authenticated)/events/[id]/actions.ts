@@ -76,6 +76,7 @@ export async function updateRoleAssignment(
   }
 
   const assigneeName = formData.get("assignee_name") as string;
+  const memberId = formData.get("member_id") as string | null;
   const trimmedName = assigneeName?.trim() || null;
 
   // Verify ownership through event
@@ -93,6 +94,7 @@ export async function updateRoleAssignment(
     .from("event_roles")
     .update({
       assignee_name: trimmedName,
+      member_id: memberId || null,
       is_filled: !!trimmedName,
     })
     .eq("id", roleId);
@@ -104,7 +106,8 @@ export async function updateRoleAssignment(
 
   console.log("[updateRoleAssignment] Success - Revalidating path:", `/events/${eventId}`);
   revalidatePath(`/events/${eventId}`);
-  return { success: true, message: "Role updated successfully" };
+  revalidatePath("/dashboard");
+  return { success: true, message: "Petugas berhasil diupdate!" };
 }
 
 export async function deleteRole(
