@@ -1,16 +1,22 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { Users } from "lucide-react";
+import { Users, UserPlus } from "lucide-react";
 
 import { AddMemberDialog } from "./add-member-dialog";
 import { MemberItem } from "./member-item";
 
 import { Card, CardContent } from "@/components/ui/card";
 
-type Member = {
+type AttendanceRecord = {
+  status: string;
+  created_at: string;
+};
+
+type MemberWithAttendance = {
   id: string;
   name: string;
   phone: string | null;
+  event_attendance: AttendanceRecord[];
 };
 
 export default async function MembersPage() {
@@ -24,12 +30,29 @@ export default async function MembersPage() {
     redirect("/login");
   }
 
-  // Fetch members for current user
+  // Fetch members with attendance history
   const { data: members } = await supabase
     .from("members")
-    .select("id, name, phone")
+    .select("id, name, phone, event_attendance(status, created_at)")
     .eq("user_id", user.id)
     .order("name", { ascending: true });
+
+  // Process members to add attendance dots
+  const membersWithDots = (members || []).map((member: MemberWithAttendance) => {
+    // Sort attendance by date desc and take last 5
+    const sortedAttendance = [...(member.event_attendance || [])]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 5);
+    
+    const attendanceDots = sortedAttendance.map((a) => a.status as "present" | "absent");
+    
+    return {
+      id: member.id,
+      name: member.name,
+      phone: member.phone,
+      attendanceDots,
+    };
+  });
 
   return (
     <main className="min-h-screen flex flex-col">
@@ -49,26 +72,26 @@ export default async function MembersPage() {
       {/* Content */}
       <div className="flex-1 p-4 pb-24">
         <p className="text-muted-foreground text-sm mb-4">
-          Kelola daftar anggota komsel kamu.
+          {membersWithDots.length} anggota komsel
         </p>
 
-        {members && members.length > 0 ? (
+        {membersWithDots.length > 0 ? (
           <div className="space-y-2">
-            {members.map((member: Member) => (
+            {membersWithDots.map((member) => (
               <MemberItem key={member.id} member={member} />
             ))}
           </div>
         ) : (
           /* Empty State */
-          <Card className="border-dashed border-2 border-border">
-            <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center">
-                <Users className="w-8 h-8 text-muted-foreground" />
+          <Card className="border-dashed border-2 border-border rounded-lg">
+            <CardContent className="p-6 text-center">
+              <div className="w-14 h-14 mx-auto mb-3 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center">
+                <Users className="w-7 h-7 text-muted-foreground" />
               </div>
-              <h3 className="font-medium text-foreground mb-1">
+              <h3 className="font-medium text-foreground mb-1 text-sm">
                 Belum ada jemaat
               </h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Tambahkan anggota komsel pertamamu!
               </p>
             </CardContent>

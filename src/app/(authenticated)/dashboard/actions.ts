@@ -9,6 +9,16 @@ export type ActionState = {
   message: string;
 } | null;
 
+// Standard GMS Komsel roles for auto-seeding
+const STANDARD_ROLES = [
+  "CG Leader",
+  "Worship Leader",
+  "Fellowship",
+  "Games / Ice Breaker",
+  "Pembawa Doa",
+  "Tuan Rumah"
+];
+
 export async function createEvent(
   prevState: ActionState,
   formData: FormData
@@ -41,30 +51,54 @@ export async function createEvent(
     };
   }
 
-  const { error } = await supabase.from("events").insert({
-    user_id: user.id,
-    title,
-    topic: topic || null,
-    event_date: eventDate,
-    location: location || null,
-    event_type: eventType,
-    is_outing: isOuting,
-    maps_link: mapsLink || null,
-  });
+  // Insert event and get the created event ID
+  const { data: newEvent, error } = await supabase
+    .from("events")
+    .insert({
+      user_id: user.id,
+      title,
+      topic: topic || null,
+      event_date: eventDate,
+      location: location || null,
+      event_type: eventType,
+      is_outing: isOuting,
+      maps_link: mapsLink || null,
+    })
+    .select("id")
+    .single();
 
-  if (error) {
+  if (error || !newEvent) {
     console.error("Create event error:", error);
     return {
       success: false,
-      message: error.message || "Failed to create event.",
+      message: error?.message || "Failed to create event.",
     };
+  }
+
+  // Auto-seed standard roles for REGULAR events only
+  if (eventType === "regular") {
+    const rolesToInsert = STANDARD_ROLES.map((roleName) => ({
+      event_id: newEvent.id,
+      role_name: roleName,
+      assignee_name: null,
+      is_filled: false,
+    }));
+
+    const { error: rolesError } = await supabase
+      .from("event_roles")
+      .insert(rolesToInsert);
+
+    if (rolesError) {
+      console.error("Auto-seed roles error:", rolesError);
+      // Event was created, roles failed - still return success but log the error
+    }
   }
 
   revalidatePath("/dashboard");
 
   return {
     success: true,
-    message: "Event created successfully!",
+    message: "Jadwal berhasil dibuat!",
   };
 }
 

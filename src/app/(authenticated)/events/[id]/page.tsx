@@ -115,7 +115,14 @@ export default async function EventDetailPage({
   
   const attendance: Attendance[] = (attendanceData || []) as Attendance[];
 
-  const userEmail = user.email || "User";
+  // Fetch leader profile for coach report
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .single();
+
+  const leaderName = profile?.full_name || user.email?.split("@")[0] || "Leader";
   const eventDate = new Date(event.event_date);
   const formattedDate = format(eventDate, "EEEE, d MMMM yyyy 'pukul' HH:mm", { locale: idLocale });
 
@@ -243,7 +250,7 @@ export default async function EventDetailPage({
           <div className="mt-4">
             <CopyReportButton
               event={event}
-              leaderName={userEmail.split("@")[0]}
+              leaderName={leaderName}
               members={members}
               attendance={attendance}
             />

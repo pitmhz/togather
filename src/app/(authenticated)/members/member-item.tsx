@@ -28,7 +28,25 @@ type Member = {
   id: string;
   name: string;
   phone: string | null;
+  attendanceDots?: ("present" | "absent")[];
 };
+
+function AttendanceDots({ dots }: { dots: ("present" | "absent")[] }) {
+  if (!dots || dots.length === 0) return null;
+  
+  return (
+    <div className="flex gap-0.5">
+      {dots.map((status, i) => (
+        <span
+          key={i}
+          className={`w-2 h-2 rounded-full ${
+            status === "present" ? "bg-emerald-500" : "bg-red-500"
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -78,37 +96,42 @@ export function MemberItem({ member }: { member: Member }) {
 
   return (
     <>
-      <div className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">
+      <div className="flex items-center justify-between p-3 bg-card border border-border rounded-lg">
         <div className="flex-1 min-w-0">
-          <p className="font-medium text-foreground truncate">{member.name}</p>
+          <p className="font-medium text-foreground truncate text-sm">{member.name}</p>
           {member.phone && (
-            <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
+            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
               <Phone className="w-3 h-3" />
               {member.phone}
             </p>
           )}
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreHorizontal className="w-4 h-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setEditOpen(true)}>
-              <Pencil className="w-4 h-4 mr-2" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={handleDelete}
-              className="text-red-600 focus:text-red-600"
-              disabled={isPending}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Hapus
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-2">
+          {/* Attendance Dots */}
+          <AttendanceDots dots={member.attendanceDots || []} />
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreHorizontal className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setEditOpen(true)}>
+                <Pencil className="w-4 h-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleDelete}
+                className="text-red-600 focus:text-red-600"
+                disabled={isPending}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Hapus
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Edit Dialog */}

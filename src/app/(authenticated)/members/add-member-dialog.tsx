@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { Plus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 import { addMember, type ActionState } from "./actions";
@@ -52,9 +52,8 @@ export function AddMemberDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
-          <Plus className="w-4 h-4 mr-2" />
-          Tambah Jemaat
+        <Button size="icon" className="bg-indigo-600 hover:bg-indigo-700 text-white w-9 h-9">
+          <UserPlus className="w-4 h-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-[calc(480px-2rem)]">

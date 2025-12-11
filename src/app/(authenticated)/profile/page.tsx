@@ -1,11 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { LogOut, Settings } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 
 import { signOut } from "@/app/(authenticated)/dashboard/actions";
+import { ProfileForm } from "./profile-form";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+type Profile = {
+  full_name: string | null;
+  phone_number: string | null;
+};
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -18,7 +23,15 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
+  // Fetch profile
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name, phone_number")
+    .eq("id", user.id)
+    .single();
+
   const userEmail = user.email || "User";
+  const displayName = profile?.full_name || userEmail.split("@")[0];
 
   return (
     <main className="min-h-screen flex flex-col pb-24">
@@ -30,30 +43,32 @@ export default async function ProfilePage() {
       </header>
 
       {/* Content */}
-      <div className="flex-1 p-4">
-        {/* User Info Card */}
-        <Card className="mb-4">
+      <div className="flex-1 p-4 space-y-4">
+        {/* Avatar Section */}
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-950 rounded-full flex items-center justify-center">
+            <User className="w-8 h-8 text-indigo-600" />
+          </div>
+          <div>
+            <p className="font-medium text-foreground text-lg">{displayName}</p>
+            <p className="text-sm text-muted-foreground">{userEmail}</p>
+            <p className="text-xs text-indigo-600">Cell Group Leader</p>
+          </div>
+        </div>
+
+        {/* Edit Profile Card */}
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-              Akun
+              Identitas Leader
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-950 rounded-full flex items-center justify-center">
-                <span className="text-xl font-semibold text-indigo-600">
-                  {userEmail.charAt(0).toUpperCase()}
-                </span>
-              </div>
-              <div>
-                <p className="font-medium text-foreground">{userEmail}</p>
-                <p className="text-sm text-muted-foreground">Cell Group Leader</p>
-              </div>
-            </div>
+            <ProfileForm profile={profile} />
           </CardContent>
         </Card>
 
-        {/* Actions */}
+        {/* Logout */}
         <Card>
           <CardContent className="p-0">
             <form action={signOut}>
