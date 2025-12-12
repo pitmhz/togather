@@ -2,19 +2,18 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
-import { ArrowLeft, CalendarDays, MapPin, Users, ClipboardList, Megaphone, Rocket, Crown } from "lucide-react";
+import { ArrowLeft, Users, ClipboardList, Megaphone, Rocket, Crown } from "lucide-react";
 import Link from "next/link";
 
-import { ShareButton } from "./share-button";
 import { AddRoleDialog } from "./add-role-dialog";
 import { RoleItem } from "./role-item";
 import { AttendanceList } from "./attendance-list";
-import { CopyReportButton } from "./copy-report-button";
 import { MarketingBlast } from "./marketing-blast";
+import { EventInfoCard } from "./event-info-card";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { HolyAccent } from "@/components/holy-accent";
 
 // STRICT: Force dynamic rendering - disable all caching
 export const dynamic = "force-dynamic";
@@ -126,65 +125,41 @@ export default async function EventDetailPage({
   const formattedDate = format(eventDate, "EEEE, d MMMM yyyy 'pukul' HH:mm", { locale: idLocale });
 
   return (
-    <main className="min-h-screen flex flex-col">
+    <main className="min-h-screen flex flex-col relative overflow-hidden">
+      <HolyAccent type="bible" />
       {/* Header */}
-      <header className="flex items-center justify-between p-4 border-b border-border">
+      <header className="flex items-center justify-between p-4 border-b border-[#E3E3E3] bg-white">
         <Button variant="ghost" size="icon" asChild>
           <Link href="/dashboard">
             <ArrowLeft className="w-5 h-5" />
           </Link>
         </Button>
-        <ShareButton 
-          title={event.title}
-          topic={event.topic}
-          date={formattedDate}
-          location={event.location}
-        />
+        <h1 className="text-sm font-medium text-[#37352F]">
+          Detail Event
+        </h1>
+        <div className="w-10" /> {/* Spacer for centering */}
       </header>
 
       {/* Content */}
-      <div className="flex-1 p-4 pb-24">
-        {/* Event Info Card */}
-        <Card className="relative overflow-hidden border-2 border-indigo-200 dark:border-indigo-900 mb-6">
-          {/* Gradient accent */}
-          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-500" />
-          <CardContent className="pt-6 pb-4">
-            <h1 className="text-xl font-heading font-semibold text-foreground mb-2">
-              {event.title}
-            </h1>
-            {event.topic && (
-              <p className="text-muted-foreground text-sm mb-4">
-                {event.topic}
-              </p>
-            )}
-            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <CalendarDays className="w-4 h-4 text-indigo-600" />
-                <span>
-                  {format(eventDate, "EEEE, d MMM yyyy")} at{" "}
-                  {format(eventDate, "h:mm a")}
-                </span>
-              </div>
-              {event.location && (
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-indigo-600" />
-                  <span>{event.location}</span>
-                </div>
-              )}
-            </div>
-            {/* Maps Link Button */}
-            {event.maps_link && (
-              <a
-                href={event.maps_link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 rounded-lg text-sm font-medium hover:bg-emerald-100 dark:hover:bg-emerald-900 transition-colors"
-              >
-                📍 Buka Peta
-              </a>
-            )}
-          </CardContent>
-        </Card>
+      <div className="flex-1 p-4 pb-24 bg-[#FBFBFA]">
+        {/* Event Info Card (Clickable -> Opens Menu) */}
+        <EventInfoCard
+          event={event}
+          formattedDate={formattedDate}
+          shareData={{
+            title: event.title,
+            topic: event.topic,
+            date: formattedDate,
+            location: event.location,
+          }}
+          reportData={{
+            title: event.title,
+            date: formattedDate,
+            members: members,
+            roles: roles,
+            attendance: attendance,
+          }}
+        />
 
         {/* Conditional: Roles Section (Regular only) */}
         {event.event_type !== "gabungan" && (
@@ -213,7 +188,7 @@ export default async function EventDetailPage({
           </div>
 
           {/* Roles List (Filter out CG Leader if exists) */}
-          <div className="space-y-2 mb-4">
+          <div className="grid grid-cols-2 gap-3 mb-4">
             {roles && roles.length > 0 ? (
               roles
                 .filter((role: Role) => role.role_name.toLowerCase() !== "cg leader")
@@ -221,7 +196,7 @@ export default async function EventDetailPage({
                   <RoleItem key={role.id} role={role} eventId={id} members={members} />
                 ))
             ) : (
-              <div className="text-center py-4 text-muted-foreground text-sm">
+              <div className="col-span-2 text-center py-4 text-muted-foreground text-sm">
                 Tidak ada posisi petugas lainnya.
               </div>
             )}
@@ -259,16 +234,6 @@ export default async function EventDetailPage({
             members={members}
             attendance={attendance}
           />
-
-          {/* Copy Report Button */}
-          <div className="mt-4">
-            <CopyReportButton
-              event={event}
-              leaderName={leaderName}
-              members={members}
-              attendance={attendance}
-            />
-          </div>
         </section>
       </div>
     </main>

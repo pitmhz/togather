@@ -5,6 +5,7 @@ import { LogOut, User } from "lucide-react";
 import { signOut } from "@/app/(authenticated)/dashboard/actions";
 import { ProfileForm } from "./profile-form";
 import { SecurityForm } from "./security-form";
+import { PrivacyControl } from "@/components/privacy-control";
 import { getUserRole } from "@/lib/user-role";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,7 +31,7 @@ export default async function ProfilePage() {
   // Fetch profile with all fields
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, phone_number, address, maps_link")
+    .select("full_name, phone_number, address, maps_link, gender, birth_date, mbti, mbti_summary")
     .eq("id", user.id)
     .single();
 
@@ -80,20 +81,27 @@ export default async function ProfilePage() {
           </CardContent>
         </Card>
 
-        {/* Logout */}
-        <Card className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700">
-          <CardContent className="p-0">
-            <form action={signOut}>
-              <button
-                type="submit"
-                className="w-full flex items-center gap-3 p-4 text-left hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-red-600 rounded-lg"
-              >
-                <LogOut className="w-5 h-5" />
-                <span className="font-medium">Keluar dari Akun</span>
-              </button>
-            </form>
-          </CardContent>
-        </Card>
+        {/* Privacy & Data Control */}
+        <PrivacyControl />
+
+        {/* Spacer */}
+        <div className="flex-1 min-h-8" />
+
+        {/* Footer - Logout & Version */}
+        <div className="text-center mt-8 pb-4">
+          <form action={signOut}>
+            <button
+              type="submit"
+              className="inline-flex items-center gap-1.5 text-sm text-red-600 opacity-60 hover:opacity-100 transition-opacity"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Keluar dari Akun</span>
+            </button>
+          </form>
+          <p className="text-xs text-gray-400 mt-3">
+            Togather Beta v1.1.0 · <a href="/privacy" className="underline hover:text-gray-500">Kebijakan Privasi</a>
+          </p>
+        </div>
       </div>
     </main>
   );

@@ -1,9 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { format } from "date-fns";
+import { format, differenceInDays, isToday } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
-import { Users, CalendarDays, MapPin, User, History } from "lucide-react";
+import { CalendarDays, MapPin, User, History } from "lucide-react";
 import Link from "next/link";
+
+import { DailyVerse } from "@/components/daily-verse";
+import { BackgroundPattern } from "@/components/ui/background-pattern";
+import { BirthdayWidget } from "./birthday-widget";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +55,28 @@ function getStatusBadge(roles: { is_filled: boolean }[]) {
   );
 }
 
+function getCountdownBadge(eventDate: Date) {
+  if (isToday(eventDate)) {
+    return (
+      <Badge className="text-[10px] px-2 py-0.5 bg-[#EB5757] text-white border-0 rounded-sm animate-pulse">
+        HARI INI
+      </Badge>
+    );
+  }
+  
+  const daysUntil = differenceInDays(eventDate, new Date());
+  
+  if (daysUntil > 0 && daysUntil <= 3) {
+    return (
+      <Badge className="text-[10px] px-2 py-0.5 bg-[#FADEC9] text-[#D9730D] border-0 rounded-sm">
+        H-{daysUntil}
+      </Badge>
+    );
+  }
+  
+  return null;
+}
+
 function EventCard({ event, isPast = false, isSlider = false }: { event: EventWithRoles; isPast?: boolean; isSlider?: boolean }) {
   if (isSlider) {
     return (
@@ -59,7 +85,7 @@ function EventCard({ event, isPast = false, isSlider = false }: { event: EventWi
           <CardContent className="p-5 h-full flex flex-col relative">
             {/* Top: Date & Status */}
             <div className="flex justify-between items-start mb-4">
-              <div className="flex-shrink-0 w-14 h-14 rounded-md flex flex-col items-center justify-center bg-[#F7F7F5] border border-[#E3E3E3]">
+            <div className="flex-shrink-0 w-14 h-14 rounded-md flex flex-col items-center justify-center bg-[#F7F7F5] border border-[#E3E3E3] relative">
                 <span className="text-xs font-medium uppercase text-[#9B9A97]">
                   {format(new Date(event.event_date), "EEE", { locale: idLocale })}
                 </span>
@@ -67,7 +93,8 @@ function EventCard({ event, isPast = false, isSlider = false }: { event: EventWi
                   {format(new Date(event.event_date), "d")}
                 </span>
               </div>
-              <div>
+              <div className="flex flex-col items-end gap-1">
+                {getCountdownBadge(new Date(event.event_date))}
                 {getStatusBadge(event.event_roles || [])}
               </div>
             </div>
@@ -205,11 +232,28 @@ export default async function DashboardPage() {
   // Sort past events in reverse order (most recent first)
   pastEvents.reverse();
 
+  // Fetch members with birthdays
+  const { data: members } = await supabase
+    .from("members")
+    .select("id, name, birth_date, gender, phone")
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+    .not("birth_date", "is", null);
+
+  const birthdayMembers = (members || []).map(m => ({
+    id: m.id,
+    name: m.name,
+    birth_date: m.birth_date as string,
+    gender: m.gender as string | null,
+    phone: m.phone as string | null
+  }));
+
   const userEmail = user.email || "User";
   const displayName = userEmail.split("@")[0];
 
   return (
-    <main className="min-h-screen flex flex-col bg-[#FBFBFA]">
+    <main className="min-h-screen flex flex-col bg-[#FBFBFA] relative overflow-hidden">
+      <BackgroundPattern variant="dove" />
       {/* Header */}
       <header className="flex items-center justify-between p-4 border-b border-[#E3E3E3] bg-white">
         <div className="flex items-center gap-2">
@@ -237,6 +281,14 @@ export default async function DashboardPage() {
             Kelola jadwal komsel kamu
           </p>
         </section>
+
+        {/* Daily Verse */}
+        <section className="mb-6">
+          <DailyVerse />
+        </section>
+
+        {/* Birthday Widget */}
+        <BirthdayWidget members={birthdayMembers} />
 
         {/* Upcoming Events Carousel */}
         <section className="mb-8">

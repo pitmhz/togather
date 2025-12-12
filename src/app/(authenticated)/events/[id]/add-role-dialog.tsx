@@ -11,13 +11,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -25,7 +27,7 @@ function SubmitButton() {
   return (
     <Button
       type="submit"
-      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+      className="w-full bg-[#191919] hover:bg-[#2F2F2F] text-white"
       disabled={pending}
     >
       {pending ? "Menambahkan..." : "Tambah Posisi"}
@@ -51,37 +53,45 @@ export function AddRoleDialog({ eventId }: { eventId: string }) {
   }, [state]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTrigger asChild>
         <Button
           variant="outline"
-          className="w-full border-dashed border-2 text-muted-foreground hover:text-foreground hover:border-indigo-400"
+          className="w-full border-dashed border-2 text-[#9B9A97] hover:text-[#37352F] hover:border-[#37352F]"
         >
           <Plus className="w-4 h-4 mr-2" />
           Tambah Posisi
         </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-[calc(480px-2rem)]">
-        <DialogHeader>
-          <DialogTitle className="font-heading">Tambah Posisi Baru</DialogTitle>
-          <DialogDescription>
+      </DrawerTrigger>
+      <DrawerContent>
+        <DrawerHeader className="text-left">
+          <DrawerTitle className="text-lg font-semibold text-[#37352F]">
+            Tambah Posisi Baru
+          </DrawerTitle>
+          <DrawerDescription>
             Buat posisi petugas untuk acara ini (misal: WL, Pendoa, MC)
-          </DialogDescription>
-        </DialogHeader>
-        <form action={formAction} className="space-y-4 mt-4">
+          </DrawerDescription>
+        </DrawerHeader>
+        <form action={formAction} className="px-4 pb-4 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="role_name">Nama Posisi *</Label>
+            <Label htmlFor="role_name" className="text-[#37352F]">Nama Posisi *</Label>
             <Input
               id="role_name"
               name="role_name"
               placeholder="contoh: Worship Leader"
               required
               autoFocus
+              className="scroll-m-20"
             />
           </div>
           <SubmitButton />
         </form>
-      </DialogContent>
-    </Dialog>
+        <DrawerFooter className="pt-0">
+          <DrawerClose asChild>
+            <Button variant="outline">Batal</Button>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }

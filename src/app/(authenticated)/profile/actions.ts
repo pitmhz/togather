@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { generateMBTISummary } from "@/lib/gemini";
 
 export type ActionState = {
   success: boolean;
@@ -27,6 +28,9 @@ export async function updateProfile(
   const phoneNumber = formData.get("phone_number") as string;
   const address = formData.get("address") as string;
   const mapsLink = formData.get("maps_link") as string;
+  const gender = formData.get("gender") as string;
+  const birthDate = formData.get("birth_date") as string;
+  const mbti = formData.get("mbti") as string;
 
   if (!firstName) {
     return { success: false, message: "Nama depan wajib diisi!" };
@@ -34,6 +38,28 @@ export async function updateProfile(
 
   // Combine first and last name
   const fullName = lastName ? `${firstName} ${lastName}` : firstName;
+
+  // Check if MBTI changed and generate summary
+  let mbtiSummary: string | null = null;
+  if (mbti) {
+    // Fetch current profile to check if MBTI changed
+    const { data: currentProfile } = await supabase
+      .from("profiles")
+      .select("mbti, mbti_summary")
+      .eq("id", user.id)
+      .single();
+
+    if (currentProfile?.mbti !== mbti || !currentProfile?.mbti_summary) {
+      try {
+        mbtiSummary = await generateMBTISummary(mbti, fullName);
+      } catch (error) {
+        console.error("[updateProfile] MBTI generation error:", error);
+        // Continue without summary if AI fails
+      }
+    } else {
+      mbtiSummary = currentProfile.mbti_summary;
+    }
+  }
 
   // Upsert profile
   const { error } = await supabase
@@ -44,6 +70,10 @@ export async function updateProfile(
       phone_number: phoneNumber || null,
       address: address || null,
       maps_link: mapsLink || null,
+      gender: gender || null,
+      birth_date: birthDate || null,
+      mbti: mbti || null,
+      mbti_summary: mbtiSummary,
     });
 
   if (error) {

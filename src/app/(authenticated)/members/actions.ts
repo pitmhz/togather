@@ -14,6 +14,8 @@ export async function addMember(
 ): Promise<ActionState> {
   const name = formData.get("name") as string;
   const phone = formData.get("phone") as string | null;
+  const gender = formData.get("gender") as string | null;
+  const birthDate = formData.get("birth_date") as string | null;
 
   if (!name || name.trim() === "") {
     return {
@@ -39,6 +41,8 @@ export async function addMember(
     user_id: user.id,
     name: name.trim(),
     phone: phone?.trim() || null,
+    gender: gender || null,
+    birth_date: birthDate || null,
   });
 
   if (error) {
@@ -174,6 +178,41 @@ export async function deleteMember(memberId: string): Promise<ActionState> {
   return {
     success: true,
     message: "Jemaat berhasil dihapus.",
+  };
+}
+
+export async function deactivateMember(memberId: string): Promise<ActionState> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      success: false,
+      message: "Kamu harus login terlebih dahulu.",
+    };
+  }
+
+  const { error } = await supabase
+    .from("members")
+    .update({ is_active: false })
+    .eq("id", memberId);
+
+  if (error) {
+    console.error("Error deactivating member:", error);
+    return {
+      success: false,
+      message: "Gagal menonaktifkan member. Coba lagi.",
+    };
+  }
+
+  revalidatePath("/members");
+
+  return {
+    success: true,
+    message: "Member berhasil dinonaktifkan.",
   };
 }
 

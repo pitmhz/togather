@@ -129,7 +129,7 @@ export default function LoginPage() {
           Dengan melanjutkan, kamu menyetujui{" "}
           <span className="underline cursor-pointer hover:text-[#37352F]">Ketentuan Layanan</span>
           {" "}dan{" "}
-          <span className="underline cursor-pointer hover:text-[#37352F]">Kebijakan Privasi</span>.
+          <a href="/privacy" className="underline hover:text-[#37352F]">Kebijakan Privasi</a>.
         </p>
       </div>
     </main>

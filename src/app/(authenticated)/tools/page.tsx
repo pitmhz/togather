@@ -8,6 +8,7 @@ import { id as idLocale } from "date-fns/locale";
 import { ToolsTabs } from "./tools-tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { BackgroundPattern } from "@/components/ui/background-pattern";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -71,7 +72,8 @@ export default async function ToolsPage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col pb-24 bg-slate-50 dark:bg-zinc-950">
+    <main className="min-h-screen flex flex-col pb-24 bg-[#FBFBFA] relative overflow-hidden">
+      <BackgroundPattern variant="bible" />
       {/* Header */}
       <header className="p-4 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         <div className="flex items-center gap-2">

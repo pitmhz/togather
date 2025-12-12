@@ -2,21 +2,23 @@
 
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
-import { CheckCircle2, UserCircle, Trash2 } from "lucide-react";
+import { CheckCircle2, Crown, Home, Utensils, Music, Gamepad2, HeartHandshake, User, Eraser } from "lucide-react";
 import { toast } from "sonner";
 
-import { updateRoleAssignment, deleteRole, type ActionState } from "./actions";
+import { updateRoleAssignment, type ActionState } from "./actions";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { MemberCombobox } from "@/components/member-combobox";
 
 type Role = {
@@ -38,7 +40,7 @@ function SubmitButton() {
   return (
     <Button
       type="submit"
-      className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white"
+      className="flex-1 bg-[#191919] hover:bg-[#2F2F2F] text-white"
       disabled={pending}
     >
       {pending ? "Menyimpan..." : "Simpan"}
@@ -56,7 +58,6 @@ export function RoleItem({
   members?: Member[];
 }) {
   const [open, setOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
   const [assigneeName, setAssigneeName] = useState(role.assignee_name || "");
   const [memberId, setMemberId] = useState<string | undefined>(role.member_id || undefined);
 
@@ -75,7 +76,7 @@ export function RoleItem({
     }
   }, [state]);
 
-  // Reset form when dialog opens
+  // Reset form when drawer opens
   useEffect(() => {
     if (open) {
       setAssigneeName(role.assignee_name || "");
@@ -88,45 +89,67 @@ export function RoleItem({
     setMemberId(selectedMemberId);
   };
 
-  const handleDelete = () => {
-    if (!confirm("Hapus posisi ini?")) return;
+  const [isUnassigning, startUnassign] = useTransition();
 
-    startTransition(async () => {
-      const result = await deleteRole(role.id, eventId);
+  const handleUnassign = () => {
+    const formData = new FormData();
+    formData.append("assignee_name", "");
+    formData.append("member_id", "");
+    
+    startUnassign(async () => {
+      const result = await updateRoleWithIds(null, formData);
       if (result?.success) {
-        toast.success(result.message);
+        toast.success("Petugas berhasil dikosongkan");
         setOpen(false);
+        setAssigneeName("");
+        setMemberId(undefined);
       } else {
-        toast.error(result?.message || "Gagal menghapus");
+        toast.error(result?.message || "Gagal mengosongkan petugas");
       }
     });
   };
 
   const isFilled = role.is_filled && role.assignee_name;
 
+  // Role-specific icons based on role name
+  const getRoleIcon = (roleName: string) => {
+    const lower = roleName.toLowerCase();
+    if (lower.includes('leader') || lower.includes('ketua') || lower.includes('wl')) 
+      return <Crown className="w-4 h-4 text-yellow-500" />;
+    if (lower.includes('rumah') || lower.includes('host') || lower.includes('tempat')) 
+      return <Home className="w-4 h-4 text-blue-500" />;
+    if (lower.includes('fellowship') || lower.includes('makan') || lower.includes('snack') || lower.includes('konsumsi')) 
+      return <Utensils className="w-4 h-4 text-orange-500" />;
+    if (lower.includes('worship') || lower.includes('lagu') || lower.includes('gitar') || lower.includes('singer') || lower.includes('musik')) 
+      return <Music className="w-4 h-4 text-purple-500" />;
+    if (lower.includes('game') || lower.includes('ice') || lower.includes('breaker')) 
+      return <Gamepad2 className="w-4 h-4 text-pink-500" />;
+    if (lower.includes('doa') || lower.includes('pray') || lower.includes('pendoa')) 
+      return <HeartHandshake className="w-4 h-4 text-green-500" />;
+    return <User className="w-4 h-4 text-[#9B9A97]" />;
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTrigger asChild>
         <button
-          className={`w-full p-3 rounded-lg border-2 text-left transition-colors ${
+          className={`w-full p-3 rounded-md border text-left transition-colors ${
             isFilled
-              ? "border-indigo-200 dark:border-indigo-900 bg-indigo-50/50 dark:bg-indigo-950/30"
-              : "border-dashed border-zinc-300 dark:border-zinc-700"
-          }`}
+              ? "border-[#DBEDDB] bg-[#DBEDDB]/20"
+              : "border-dashed border-[#E3E3E3]"
+          } hover:bg-[#F7F7F5]`}
         >
           <div className="flex items-center gap-3">
-            {isFilled ? (
-              <CheckCircle2 className="w-5 h-5 text-indigo-600 flex-shrink-0" />
-            ) : (
-              <UserCircle className="w-5 h-5 text-zinc-400 flex-shrink-0" />
-            )}
+            <div className="flex-shrink-0">
+              {getRoleIcon(role.role_name)}
+            </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              <p className="text-xs font-medium text-[#9B9A97] uppercase tracking-wide">
                 {role.role_name}
               </p>
               <p
                 className={`text-sm font-medium truncate ${
-                  isFilled ? "text-indigo-600" : "text-zinc-400"
+                  isFilled ? "text-[#0F7B6C]" : "text-[#9B9A97]"
                 }`}
               >
                 {isFilled ? role.assignee_name : "Belum diisi"}
@@ -134,23 +157,23 @@ export function RoleItem({
             </div>
           </div>
         </button>
-      </DialogTrigger>
-      <DialogContent className="max-w-[calc(480px-2rem)]">
-        <DialogHeader>
-          <DialogTitle className="font-heading">
-            Ubah: {role.role_name}
-          </DialogTitle>
-          <DialogDescription>
+      </DrawerTrigger>
+      <DrawerContent>
+        <DrawerHeader className="text-left">
+          <DrawerTitle className="text-lg font-semibold text-[#37352F]">
+            {role.role_name}
+          </DrawerTitle>
+          <DrawerDescription>
             Pilih jemaat atau ketik nama baru
-          </DialogDescription>
-        </DialogHeader>
-        <form action={formAction} className="space-y-4 mt-4">
+          </DrawerDescription>
+        </DrawerHeader>
+        <form action={formAction} className="px-4 pb-4">
           {/* Hidden inputs for form submission */}
           <input type="hidden" name="assignee_name" value={assigneeName} />
           <input type="hidden" name="member_id" value={memberId || ""} />
           
-          <div className="space-y-2">
-            <Label>Nama Petugas</Label>
+          <div className="space-y-2 mb-4">
+            <Label className="text-[#37352F]">Nama Petugas</Label>
             <MemberCombobox
               members={members}
               value={assigneeName}
@@ -158,20 +181,26 @@ export function RoleItem({
               placeholder="Pilih atau ketik nama..."
             />
           </div>
-          <div className="flex gap-2">
-            <SubmitButton />
+          <SubmitButton />
+        </form>
+        <DrawerFooter className="pt-0 grid grid-cols-2 gap-3">
+          {isFilled && (
             <Button
               type="button"
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={isPending}
-              className="px-3"
+              variant="outline"
+              onClick={handleUnassign}
+              disabled={isUnassigning}
+              className="border-red-200 bg-red-50/50 text-red-600 hover:bg-red-100 hover:text-red-700"
             >
-              <Trash2 className="w-4 h-4" />
+              <Eraser className="w-4 h-4 mr-2" />
+              {isUnassigning ? "..." : "Kosongkan"}
             </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+          )}
+          <DrawerClose asChild>
+            <Button variant="outline" className={isFilled ? "" : "col-span-2"}>Batal</Button>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }

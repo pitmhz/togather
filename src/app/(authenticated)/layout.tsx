@@ -1,4 +1,5 @@
 import { BottomNav } from "@/components/bottom-nav";
+import { CookieConsent } from "@/components/cookie-consent";
 
 export default function AuthenticatedLayout({
   children,
@@ -9,6 +10,7 @@ export default function AuthenticatedLayout({
     <>
       {children}
       <BottomNav />
+      <CookieConsent />
     </>
   );
 }

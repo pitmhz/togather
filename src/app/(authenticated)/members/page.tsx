@@ -8,6 +8,7 @@ import { AddMemberDialog } from "./add-member-dialog";
 import { MembersGrid } from "./members-grid";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { BackgroundPattern } from "@/components/ui/background-pattern";
 
 type AttendanceRecord = {
   status: string;
@@ -23,7 +24,8 @@ type MemberWithAttendance = {
   status: "available" | "unavailable" | null;
   unavailable_reason: string | null;
   unavailable_until: string | null;
-  temp_admin_until: string | null;
+  gender: "L" | "P" | null;
+  is_active: boolean | null;
   event_attendance: AttendanceRecord[];
 };
 
@@ -68,13 +70,15 @@ export default async function MembersPage() {
       status: member.status || "available",
       unavailable_reason: member.unavailable_reason,
       unavailable_until: member.unavailable_until,
-      temp_admin_until: member.temp_admin_until,
+      gender: member.gender,
+      is_active: member.is_active ?? true,
       attendanceDots,
     };
   });
 
   return (
-    <main className="min-h-screen flex flex-col bg-slate-50 dark:bg-zinc-950">
+    <main className="min-h-screen flex flex-col bg-[#FBFBFA] relative overflow-hidden">
+      <BackgroundPattern variant="prayer" />
       {/* Header */}
       <header className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         <div className="flex items-center gap-2">
