@@ -23,9 +23,10 @@ type AttendanceListProps = {
   eventId: string;
   members: Member[];
   attendance: Attendance[];
+  isAdmin?: boolean;
 };
 
-export function AttendanceList({ eventId, members, attendance }: AttendanceListProps) {
+export function AttendanceList({ eventId, members, attendance, isAdmin = true }: AttendanceListProps) {
   const [isPending, startTransition] = useTransition();
 
   const getStatus = (memberId: string) => {
@@ -81,7 +82,7 @@ export function AttendanceList({ eventId, members, attendance }: AttendanceListP
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={isPending}
+                  disabled={isPending || !isAdmin}
                   onClick={() => handleStatusChange(member.id, "present")}
                   className={cn(
                     "h-8 w-8 p-0",
@@ -93,7 +94,7 @@ export function AttendanceList({ eventId, members, attendance }: AttendanceListP
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={isPending}
+                  disabled={isPending || !isAdmin}
                   onClick={() => handleStatusChange(member.id, "absent")}
                   className={cn(
                     "h-8 w-8 p-0",

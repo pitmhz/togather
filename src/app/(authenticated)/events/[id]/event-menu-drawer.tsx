@@ -45,6 +45,7 @@ type EventMenuDrawerProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   formattedDate: string;
+  isAdmin?: boolean;
   onShare: () => void;
   onCopyReport: () => void;
 };
@@ -56,6 +57,7 @@ export function EventMenuDrawer({
   open,
   onOpenChange,
   formattedDate,
+  isAdmin = true,
   onShare,
   onCopyReport,
 }: EventMenuDrawerProps) {
@@ -150,7 +152,8 @@ export function EventMenuDrawer({
             </DrawerHeader>
 
             <div className="px-4 pb-4 space-y-1">
-              {/* AI Assistant - Featured */}
+              {/* AI Assistant - Featured (Admin only) */}
+              {isAdmin && (
               <button
                 onClick={() => setView("ai")}
                 className="w-full flex items-center gap-3 p-3 rounded-md bg-gradient-to-r from-purple-50 to-indigo-50 hover:from-purple-100 hover:to-indigo-100 transition-colors text-left border border-purple-100"
@@ -161,8 +164,10 @@ export function EventMenuDrawer({
                   <p className="text-xs text-[#9B9A97]">Generate panduan diskusi otomatis</p>
                 </div>
               </button>
+              )}
 
-              {/* Notes */}
+              {/* Notes (Admin only) */}
+              {isAdmin && (
               <button
                 onClick={() => setView("notes")}
                 className="w-full flex items-center gap-3 p-3 rounded-md hover:bg-[#F7F7F5] transition-colors text-left"
@@ -175,8 +180,10 @@ export function EventMenuDrawer({
                   </p>
                 </div>
               </button>
+              )}
 
-              {/* Edit Event */}
+              {/* Edit Event (Admin only) */}
+              {isAdmin && (
               <button
                 onClick={handleEditEvent}
                 className="w-full flex items-center gap-3 p-3 rounded-md hover:bg-[#F7F7F5] transition-colors text-left"
@@ -187,6 +194,7 @@ export function EventMenuDrawer({
                   <p className="text-xs text-[#9B9A97]">Edit judul, tanggal, lokasi</p>
                 </div>
               </button>
+              )}
 
               {/* Share */}
               <button
@@ -200,7 +208,8 @@ export function EventMenuDrawer({
                 </div>
               </button>
 
-              {/* Coach Report */}
+              {/* Coach Report (Admin only) */}
+              {isAdmin && (
               <button
                 onClick={handleCopyReport}
                 className="w-full flex items-center gap-3 p-3 rounded-md hover:bg-[#F7F7F5] transition-colors text-left"
@@ -211,6 +220,7 @@ export function EventMenuDrawer({
                   <p className="text-xs text-[#9B9A97]">Salin ke clipboard</p>
                 </div>
               </button>
+              )}
             </div>
 
             <DrawerFooter className="pt-0">

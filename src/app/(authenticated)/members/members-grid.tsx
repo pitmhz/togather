@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, Crown } from "lucide-react";
 
 import { MemberDetailDrawer } from "./member-detail-drawer";
+import { getLifeStage } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -24,6 +25,8 @@ type MemberWithDots = {
   unavailable_reason?: string | null;
   unavailable_until?: string | null;
   gender?: "L" | "P" | null;
+  role?: "admin" | "member" | "owner"; // Added role
+  birth_date?: string | null; // Added birth_date
   is_active?: boolean;
 };
 
@@ -31,6 +34,7 @@ type SortOption = "name-asc" | "name-desc" | "present-desc" | "present-asc";
 
 type MembersGridProps = {
   members: MemberWithDots[];
+  isAdmin: boolean;
 };
 
 function getAvatarUrl(name: string, avatarUrl?: string | null): string {
@@ -55,7 +59,7 @@ function AttendanceRate({ dots }: { dots: ("present" | "absent")[] }) {
   );
 }
 
-export function MembersGrid({ members: initialMembers }: MembersGridProps) {
+export function MembersGrid({ members: initialMembers, isAdmin }: MembersGridProps) {
   const [sortBy, setSortBy] = useState<SortOption>("name-asc");
   const [selectedMember, setSelectedMember] = useState<MemberWithDots | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -138,6 +142,28 @@ export function MembersGrid({ members: initialMembers }: MembersGridProps) {
                   {member.name}
                 </p>
                 <AttendanceRate dots={member.attendanceDots} />
+                
+                {/* Meta Badges */}
+                <div className="flex flex-wrap gap-1 mt-1.5">
+                   {/* Leader Badge */}
+                   {(member.role === 'admin' || member.role === 'owner') && (
+                    <Badge className="text-[10px] px-1.5 py-0 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border-0 gap-1 pl-1">
+                      <Crown className="w-3 h-3" />
+                      Leader
+                    </Badge>
+                  )}
+
+                  {/* Life Stage Badge */}
+                  {(() => {
+                    const stage = getLifeStage(member.birth_date);
+                    if (!stage) return null;
+                    return (
+                      <Badge className={`text-[10px] px-1.5 py-0 border-0 ${stage.color}`}>
+                        {stage.label}
+                      </Badge>
+                    );
+                  })()}
+                </div>
               </div>
               {/* Inactive Badge */}
               {member.is_active === false && (
@@ -156,8 +182,8 @@ export function MembersGrid({ members: initialMembers }: MembersGridProps) {
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
         avatarUrl={selectedMember ? getAvatarUrl(selectedMember.name, selectedMember.avatar_url) : undefined}
+        isAdmin={isAdmin}
       />
     </div>
   );
 }
-

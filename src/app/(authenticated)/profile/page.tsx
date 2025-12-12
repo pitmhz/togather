@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { LogOut, User } from "lucide-react";
 
 import { signOut } from "@/app/(authenticated)/dashboard/actions";
+import { ClaimAdminButton } from "./claim-admin-button";
 import { ProfileForm } from "./profile-form";
 import { SecurityForm } from "./security-form";
 import { PrivacyControl } from "@/components/privacy-control";
@@ -88,7 +89,10 @@ export default async function ProfilePage() {
         <div className="flex-1 min-h-8" />
 
         {/* Footer - Logout & Version */}
-        <div className="text-center mt-8 pb-4">
+        <div className="text-center mt-8 pb-4 space-y-4">
+          {/* Bootstrap Admin (Dev Only) */}
+          <ClaimAdminButton />
+
           <form action={signOut}>
             <button
               type="submit"

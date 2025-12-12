@@ -3,6 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { ArrowLeft, Users, ClipboardList, Megaphone, Rocket, Crown } from "lucide-react";
+
+import { isAdminAsync } from "@/lib/user-role";
 import Link from "next/link";
 
 import { AddRoleDialog } from "./add-role-dialog";
@@ -60,6 +62,9 @@ export default async function EventDetailPage({
   }
 
   console.log("[EventDetailPage] User ID:", user.id);
+
+  // Check if user is admin (database-based check)
+  const isAdmin = await isAdminAsync(user.email);
 
   // Fetch event
   const { data: event, error: eventError } = await supabase
@@ -146,6 +151,7 @@ export default async function EventDetailPage({
         <EventInfoCard
           event={event}
           formattedDate={formattedDate}
+          isAdmin={isAdmin}
           shareData={{
             title: event.title,
             topic: event.topic,
@@ -193,7 +199,7 @@ export default async function EventDetailPage({
               roles
                 .filter((role: Role) => role.role_name.toLowerCase() !== "cg leader")
                 .map((role: Role) => (
-                  <RoleItem key={role.id} role={role} eventId={id} members={members} />
+                  <RoleItem key={role.id} role={role} eventId={id} members={members} isAdmin={isAdmin} />
                 ))
             ) : (
               <div className="col-span-2 text-center py-4 text-muted-foreground text-sm">
@@ -233,6 +239,7 @@ export default async function EventDetailPage({
             eventId={id}
             members={members}
             attendance={attendance}
+            isAdmin={isAdmin}
           />
         </section>
       </div>

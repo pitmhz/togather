@@ -33,6 +33,7 @@ type Event = {
 type EventInfoCardProps = {
   event: Event;
   formattedDate: string;
+  isAdmin?: boolean;
   shareData: {
     title: string;
     topic: string | null;
@@ -75,6 +76,7 @@ function getCountdownBadge(eventDate: Date, hasCover: boolean) {
 export function EventInfoCard({ 
   event, 
   formattedDate,
+  isAdmin = true,
   shareData,
   reportData 
 }: EventInfoCardProps) {
@@ -259,6 +261,7 @@ export function EventInfoCard({
         open={menuOpen}
         onOpenChange={setMenuOpen}
         formattedDate={formattedDate}
+        isAdmin={isAdmin}
         onShare={handleShare}
         onCopyReport={handleCopyReport}
       />

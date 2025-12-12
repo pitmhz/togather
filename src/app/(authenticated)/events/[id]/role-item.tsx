@@ -51,11 +51,13 @@ function SubmitButton() {
 export function RoleItem({ 
   role, 
   eventId,
-  members = []
+  members = [],
+  isAdmin = true
 }: { 
   role: Role; 
   eventId: string;
   members?: Member[];
+  isAdmin?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [assigneeName, setAssigneeName] = useState(role.assignee_name || "");

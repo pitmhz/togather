@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Users } from "lucide-react";
 
-import { isLeader } from "@/lib/user-role";
+import { isAdminAsync } from "@/lib/user-role";
 
 import { AddMemberDialog } from "./add-member-dialog";
 import { MembersGrid } from "./members-grid";
@@ -25,6 +25,8 @@ type MemberWithAttendance = {
   unavailable_reason: string | null;
   unavailable_until: string | null;
   gender: "L" | "P" | null;
+  role: "admin" | "member" | "owner"; // Added role
+  birth_date: string | null; // Added birth_date
   is_active: boolean | null;
   event_attendance: AttendanceRecord[];
 };
@@ -39,6 +41,9 @@ export default async function MembersPage() {
   if (!user) {
     redirect("/login");
   }
+
+  // Check if user is admin (database-based check)
+  const isAdmin = await isAdminAsync(user.email);
 
   // Fetch members - simplified query to avoid column issues
   // RLS policy handles visibility - all authenticated users can read
@@ -71,6 +76,8 @@ export default async function MembersPage() {
       unavailable_reason: member.unavailable_reason,
       unavailable_until: member.unavailable_until,
       gender: member.gender,
+      role: member.role || "member", // Pass role
+      birth_date: member.birth_date, // Pass birth_date
       is_active: member.is_active ?? true,
       attendanceDots,
     };
@@ -89,13 +96,13 @@ export default async function MembersPage() {
             Jemaat
           </span>
         </div>
-        {isLeader(user.email) && <AddMemberDialog />}
+        {isAdmin && <AddMemberDialog />}
       </header>
 
       {/* Content */}
       <div className="flex-1 p-4 pb-24">
         {membersWithDots.length > 0 ? (
-          <MembersGrid members={membersWithDots} />
+          <MembersGrid members={membersWithDots} isAdmin={isAdmin} />
         ) : (
           /* Empty State */
           <Card className="border-dashed border-2 border-border rounded-lg">

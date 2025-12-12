@@ -404,4 +404,66 @@ export async function revokeTempAdmin(memberId: string): Promise<ActionState> {
   };
 }
 
+export async function promoteMember(memberId: string): Promise<ActionState> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { success: false, message: "Unauthorized" };
+
+  // Verify Admin
+  const { data: currentUser } = await supabase
+    .from("members")
+    .select("role")
+    .eq("email", user.email)
+    .single();
+
+  if (currentUser?.role !== 'admin') {
+    return { success: false, message: "Only admins can promote members." };
+  }
+
+  const { error } = await supabase
+    .from("members")
+    .update({ role: 'admin' })
+    .eq("id", memberId);
+
+  if (error) {
+    console.error("Promote Error:", error);
+    return { success: false, message: "Failed to promote member." };
+  }
+
+  revalidatePath("/members");
+  return { success: true, message: "Member promoted to Admin!" };
+}
+
+export async function demoteMember(memberId: string): Promise<ActionState> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { success: false, message: "Unauthorized" };
+
+  // Verify Admin
+  const { data: currentUser } = await supabase
+    .from("members")
+    .select("role")
+    .eq("email", user.email)
+    .single();
+
+   if (currentUser?.role !== 'admin') {
+    return { success: false, message: "Only admins can demote members." };
+  }
+
+  const { error } = await supabase
+    .from("members")
+    .update({ role: 'member' })
+    .eq("id", memberId);
+
+  if (error) {
+    console.error("Demote Error:", error);
+    return { success: false, message: "Failed to demote member." };
+  }
+
+  revalidatePath("/members");
+  return { success: true, message: "Admin demoted to Member." };
+}
+
 
