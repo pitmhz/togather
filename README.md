@@ -1,101 +1,113 @@
-# Togather
+Tentu, ini adalah draft **README.md** yang sangat profesional dan komprehensif untuk mendokumentasikan transformasi besar proyekmu menjadi **"Community Super App"**.
 
-**Togather** is a specialized Companion App for Community Groups (Komsel). Built Mobile-First, it helps Cell Group Leaders manage events, track attendance, and run interactive activities - all from their phone.
+Draft ini ditulis agar siapapun yang melihat repositori ini (investor, partner, atau developer lain) langsung paham bahwa ini bukan sekadar aplikasi CRUD biasa, tapi sebuah produk yang matang secara UX dan arsitektur.
 
-![Project Status](https://img.shields.io/badge/Status-v1.0.0_Beta-success)
-![Tech Stack](https://img.shields.io/badge/Built_With-Next.js_15_%2B_Supabase-black)
+Silakan **Copy-Paste** konten di bawah ini ke file `README.md` di root folder proyekmu.
 
-## ✨ Features
+-----
 
-### 📅 Event Management
-- Create Regular Komsel or Outing/Gabungan events
-- Auto-seeded role templates (WL, Prayer, Song Leader)
-- Google Maps integration for venue locations
-- Share event info with one tap
+# Togather: Community Super App 🚀
 
-### 👥 People Engine
-- Member directory with status management
-- Set members as Available/Unavailable with reason
-- Visual attendance history (last 5 events)
-- Auto-generated avatars
+> **v1.2-beta (The Luma Update)**
 
-### 🎯 Smart Role Assignment
-- Pinned CG Leader card (read-only)
-- Unavailable members shown disabled with reason
-- Prevents double-booking in same event
+ \![Design System](https://www.google.com/search?q=https://img.shields.io/badge/design-Luma%252F iOS-000000) 
 
-### 🎮 Gamified Tools
-- **⚡ Swipe Attendance** - Tinder-style cards for fun attendance taking
-- **🎡 Wheel of Fellowship** - Spin to pick random members
-- **🃏 Ice Breaker Cards** - Deep Talk questions with flip animations
+**Togather** adalah platform manajemen komunitas modern yang dirancang untuk memanusiakan interaksi digital. Bukan sekadar alat administrasi, tetapi sebuah "Super App" yang menggabungkan produktivitas, gamifikasi, dan *pastoral care* dalam satu genggaman.
 
-### 📊 Reporting
-- Copy formatted Coach Report to clipboard
-- Visual attendance dots per member
+Dibangun dengan pendekatan **"PWA-First"** dan arsitektur **Micro-Apps**, aplikasi ini memberikan pengalaman *native-like* yang sat-set, estetik (iOS Style), dan siap menemani dinamika komunitas (Komsel/CG).
 
-## 🚀 Local Setup
+-----
 
-```bash
-# Clone the repo
-git clone https://github.com/pitmhz/togather.git
-cd togather
+## ✨ Fitur Unggulan (v1.2)
 
-# Install dependencies
-npm install
+### 🎨 Visual & Experience (Luma-inspired)
 
-# Setup environment variables
-cp .env.example .env.local
-```
+  - **iOS Design Language:** Antarmuka yang bersih, *rounded corners*, dan *glassmorphism* yang elegan.
+  - **Dynamic Dashboard:** Kartu "Member Pass" yang menyapa user sesuai waktu (Pagi/Malam) dengan latar ilustrasi dinamis.
+  - **Emotional Streak:** Pelacak kehadiran yang memberikan respon emosional ("Kamu rajin\!" vs "Kangen nih..") berdasarkan riwayat user.
+  - **Smart Header:** Navigasi *auto-hide* yang memberikan ruang baca imersif.
 
-### Environment Variables
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-```
+### 🧩 Micro-Apps Architecture
 
-### Database Setup
-Run these migrations in Supabase SQL editor:
-```sql
--- Member status fields
-ALTER TABLE members 
-  ADD COLUMN IF NOT EXISTS avatar_url TEXT,
-  ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'available' CHECK (status IN ('available', 'unavailable')),
-  ADD COLUMN IF NOT EXISTS unavailable_reason TEXT,
-  ADD COLUMN IF NOT EXISTS unavailable_until DATE;
-```
+Alih-alih menu yang membosankan, fitur-fitur utilitas hadir sebagai aplikasi mini yang interaktif:
 
-### Run Development Server
-```bash
-npm run dev
-```
+  - **⚡ Absensi Swipe:** Cara absen seru ala Tinder (Geser Kanan = Hadir).
+  - **🎡 Roda Undian:** Gamifikasi pembagian doorprize atau giliran tugas.
+  - **🃏 Kartu Sharing:** Alat pemantik *Deep Talk* digital.
+  - **💣 Bom Waktu & Charades:** *Ice breaking games* offline-first untuk mencairkan suasana.
 
-## 🛠 Tech Stack
+### 🛡️ Security & Privacy
 
-| Category | Technology |
-|----------|------------|
-| Framework | Next.js 15 (App Router & Server Actions) |
-| Language | TypeScript |
-| Database & Auth | Supabase (PostgreSQL + Magic Link) |
-| UI Library | Shadcn/UI + Tailwind CSS v4 |
-| Animations | Framer Motion |
-| Deployment | Vercel |
+  - **Privacy Shield:** Mode penyamaran data sensitif (WA/Alamat) saat demonstrasi aplikasi.
+  - **Audit Trail:** "Kotak Hitam" digital yang mencatat setiap aksi krusial Admin.
+  - **RBAC:** Kontrol akses bertingkat (Member vs Leader vs Admin).
 
-## ⚠️ Known Limitations
+### ⚡ Performance (The "Sat-Set" Protocol)
 
-- **Single Leader Mode** - Currently optimized for one leader per account
-- **No Multi-CG Support** - Each account manages one cell group
-- **No Recurring Events** - Events must be created individually
-- **UI Avatars Only** - No custom photo uploads yet
+  - **Optimistic UI:** Feedback instan pada interaksi tombol (Like/Swipe) tanpa menunggu server.
+  - **Haptic Feedback:** Getaran fisik halus pada interaksi penting (memberikan rasa *tactile*).
+  - **Safe Rollback:** Mekanisme keamanan yang mengembalikan status UI jika sinkronisasi server gagal.
 
-## 📚 Documentation
+-----
 
-- [CHANGELOG.md](./CHANGELOG.md) - Version history
-- [documentation/](./documentation/) - Screenshots and guides
+## 🛠️ Tech Stack
 
-## 📝 License
+Project ini dibangun di atas fondasi teknologi modern yang *scalable*:
 
-MIT License - See [LICENSE](./LICENSE) for details.
+  - **Framework:** [Next.js 15 (App Router)](https://nextjs.org/) - React Server Components.
+  - **Database & Auth:** [Supabase](https://supabase.com/) - PostgreSQL, Realtime, Auth.
+  - **Styling:** [Tailwind CSS](https://tailwindcss.com/) + [Shadcn UI](https://ui.shadcn.com/).
+  - **Animation:** [Framer Motion](https://www.framer.com/motion/) - Transisi halaman & elemen mulus.
+  - **State & Cache:** React Query / SWR - Manajemen data sisi klien.
+  - **Assets:** [DiceBear API](https://www.dicebear.com/) (Avatar Dinamis).
+  - **Mobile Engine:** [Capacitor 6](https://capacitorjs.com/) (Ready) - Jembatan menuju Native Android/iOS.
 
----
-*Built with ❤️ for Community Group Leaders*
+-----
+
+## 🚀 Cara Menjalankan (Local Development)
+
+Pastikan Node.js (v18+) sudah terinstall.
+
+1.  **Clone Repositori**
+
+    ```bash
+    git clone https://github.com/username/togather.git
+    cd togather
+    ```
+
+2.  **Install Dependencies**
+
+    ```bash
+    npm install
+    # atau
+    pnpm install
+    ```
+
+3.  **Setup Environment Variables**
+    Buat file `.env.local` dan isi kredensial Supabase Anda:
+
+    ```bash
+    NEXT_PUBLIC_SUPABASE_URL=your_url_here
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key_here
+    ```
+
+4.  **Jalankan Server**
+
+    ```bash
+    npm run dev
+    ```
+
+    Buka [http://localhost:3000](https://www.google.com/search?q=http://localhost:3000) di browser Anda.
+
+-----
+
+## 📱 Roadmap Menuju v2.0
+
+  - [ ] **Native Release:** Build `.apk` dan `.ipa` menggunakan Capacitor.
+  - [ ] **Push Notifications:** Integrasi FCM untuk pengingat jadwal otomatis.
+  - [ ] **Offline Mode:** Sinkronisasi database lokal (SQLite/PowerSync) untuk akses tanpa sinyal.
+  - [ ] **Finance Module:** Laporan kas dan persembahan transparan.
+
+-----
+
+*Dibuat dengan ❤️ dan kopi (serta sesi vibecoding 10 jam).*
