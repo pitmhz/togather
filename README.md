@@ -1,11 +1,3 @@
-Tentu, ini adalah draft **README.md** yang sangat profesional dan komprehensif untuk mendokumentasikan transformasi besar proyekmu menjadi **"Community Super App"**.
-
-Draft ini ditulis agar siapapun yang melihat repositori ini (investor, partner, atau developer lain) langsung paham bahwa ini bukan sekadar aplikasi CRUD biasa, tapi sebuah produk yang matang secara UX dan arsitektur.
-
-Silakan **Copy-Paste** konten di bawah ini ke file `README.md` di root folder proyekmu.
-
------
-
 # Togather: Community Super App 🚀
 
 > **v1.2-beta (The Luma Update)**
@@ -98,16 +90,6 @@ Pastikan Node.js (v18+) sudah terinstall.
     ```
 
     Buka [http://localhost:3000](https://www.google.com/search?q=http://localhost:3000) di browser Anda.
-
------
-
-## 📱 Roadmap Menuju v2.0
-
-  - [ ] **Native Release:** Build `.apk` dan `.ipa` menggunakan Capacitor.
-  - [ ] **Push Notifications:** Integrasi FCM untuk pengingat jadwal otomatis.
-  - [ ] **Offline Mode:** Sinkronisasi database lokal (SQLite/PowerSync) untuk akses tanpa sinyal.
-  - [ ] **Finance Module:** Laporan kas dan persembahan transparan.
-
 -----
 
 *Dibuat dengan ❤️ dan kopi (serta sesi vibecoding 10 jam).*
