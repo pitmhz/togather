@@ -30,7 +30,34 @@ export async function updateSession(request: NextRequest) {
   );
 
   // Refreshing the auth token
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Route Protection Logic
+  const { pathname } = request.nextUrl;
+
+  // Define protected routes (require authentication)
+  const protectedRoutes = ["/dashboard", "/members", "/events", "/profile", "/tools"];
+  const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
+
+  // Define auth routes (shouldn't be accessible when logged in)
+  const isAuthRoute = pathname === "/login";
+
+  // Redirect logic
+  if (!user && isProtectedRoute) {
+    // User is not logged in, trying to access protected route → redirect to /login
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/login";
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  if (user && isAuthRoute) {
+    // User is logged in, trying to access login page → redirect to /dashboard
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/dashboard";
+    return NextResponse.redirect(redirectUrl);
+  }
 
   return supabaseResponse;
 }
