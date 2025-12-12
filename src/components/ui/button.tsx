@@ -56,17 +56,14 @@ function Button({
   }) {
   const [isAutoLoading, setIsAutoLoading] = React.useState(false)
 
-  const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (onClick) {
-      // Check if the onClick is an async function (returns a promise)
-      const result = onClick(e)
+      // Cast to 'any' to allow checking for Promise without TS shouting
+      const result = onClick(e) as any
+
       if (result instanceof Promise) {
         setIsAutoLoading(true)
-        try {
-          await result
-        } finally {
-          setIsAutoLoading(false)
-        }
+        result.finally(() => setIsAutoLoading(false))
       }
     }
   }
