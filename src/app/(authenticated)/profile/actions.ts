@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { generateMBTISummary } from "@/lib/gemini";
+import { logActivity } from "@/lib/logger";
 
 export type ActionState = {
   success: boolean;
@@ -85,6 +86,9 @@ export async function updateProfile(
   revalidatePath("/events");
   revalidatePath("/dashboard");
 
+  // Audit log
+  await logActivity("UPDATE_PROFILE", "Updated personal data");
+
   return { success: true, message: "Profil berhasil diupdate!" };
 }
 
@@ -153,4 +157,45 @@ export async function generateMbtiSummaryAction(mbti: string): Promise<ActionSta
   }
 }
 
+export async function updateLocale(locale: string): Promise<ActionState> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
+  if (!user) return { success: false, message: "Unauthorized" };
+
+  // Update ALL member records for this user (User setting applied typically)
+  const { error } = await supabase
+    .from("members")
+    .update({ locale })
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("[updateLocale] Error:", error);
+    return { success: false, message: "Gagal update pengaturan regional." };
+  }
+
+  revalidatePath("/");
+  return { success: true, message: "Pengaturan regional berhasil disimpan!" };
+}
+
+export async function updatePrivacyMask(masked: boolean): Promise<ActionState> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { success: false, message: "Unauthorized" };
+
+  // Update ALL member records for this user
+  const { error } = await supabase
+    .from("members")
+    .update({ privacy_masked: masked })
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("[updatePrivacyMask] Error:", error);
+    return { success: false, message: "Gagal update pengaturan privasi." };
+  }
+
+  revalidatePath("/profile");
+  revalidatePath("/profile/edit");
+  return { success: true, message: masked ? "Mode privasi diaktifkan! 🔒" : "Mode privasi dinonaktifkan." };
+}

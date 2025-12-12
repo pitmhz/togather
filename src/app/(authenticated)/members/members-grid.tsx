@@ -35,6 +35,7 @@ type SortOption = "name-asc" | "name-desc" | "present-desc" | "present-asc";
 type MembersGridProps = {
   members: MemberWithDots[];
   isAdmin: boolean;
+  localeCode: string;
 };
 
 function getAvatarUrl(name: string, avatarUrl?: string | null): string {
@@ -59,7 +60,7 @@ function AttendanceRate({ dots }: { dots: ("present" | "absent")[] }) {
   );
 }
 
-export function MembersGrid({ members: initialMembers, isAdmin }: MembersGridProps) {
+export function MembersGrid({ members: initialMembers, isAdmin, localeCode }: MembersGridProps) {
   const [sortBy, setSortBy] = useState<SortOption>("name-asc");
   const [selectedMember, setSelectedMember] = useState<MemberWithDots | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -145,7 +146,7 @@ export function MembersGrid({ members: initialMembers, isAdmin }: MembersGridPro
                 </div>
                 {member.birth_date && (
                   <p className="text-[10px] text-muted-foreground mb-1">
-                    {formatDate(member.birth_date, "dd MMMM yyyy")}
+                    {formatDate(member.birth_date, "dd MMMM yyyy", localeCode)}
                   </p>
                 )}
                 <AttendanceRate dots={member.attendanceDots} />

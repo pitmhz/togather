@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { Analytics } from "@vercel/analytics/next";
+import { GlobalHeader } from "@/components/global-header";
 import "./globals.css";
 
 const inter = Inter({
@@ -30,8 +31,11 @@ export default function RootLayout({
         className={`${inter.variable} ${plusJakartaSans.variable} font-sans antialiased bg-zinc-100 dark:bg-zinc-950`}
       >
         {/* Mobile-first container - looks like a phone even on desktop */}
-        <div className="max-w-[480px] mx-auto min-h-screen bg-background shadow-2xl border-x border-border">
-          {children}
+        <div className="max-w-[480px] mx-auto min-h-screen bg-background shadow-2xl border-x border-border relative">
+          <GlobalHeader />
+          <div className="pt-14">
+            {children}
+          </div>
         </div>
         <Toaster position="top-center" richColors />
         <Analytics />
@@ -39,3 +43,4 @@ export default function RootLayout({
     </html>
   );
 }
+

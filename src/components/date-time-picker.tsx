@@ -51,23 +51,25 @@ export function DateTimePicker({ name, required, defaultDate }: DateTimePickerPr
     <div className="space-y-3">
       {/* Hidden input for form submission */}
       <input type="hidden" name={name} value={combinedDateTime} required={required} />
-      
-      <div className="grid grid-cols-2 gap-3">
+
+      <div className="flex gap-3">
         {/* Date Picker */}
-        <div className="space-y-2">
-          <Label>Tanggal</Label>
+        <div className="flex-1 space-y-1.5">
+          <Label className="text-xs text-neutral-500">Tanggal</Label>
           <Popover>
             <PopoverTrigger asChild>
-              <Button
-                variant="outline"
+              <button
+                type="button"
                 className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !date && "text-muted-foreground"
+                  "w-full h-12 px-4 flex items-center text-left font-normal bg-neutral-100 rounded-xl hover:bg-neutral-200 transition-colors",
+                  !date && "text-neutral-400"
                 )}
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "d MMM yyyy", { locale: idLocale }) : "Pilih tanggal"}
-              </Button>
+                <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0 text-neutral-500" />
+                <span className="truncate text-base">
+                  {date ? format(date, "d MMM yyyy", { locale: idLocale }) : "Pilih tanggal"}
+                </span>
+              </button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 rounded-xl shadow-xl border-border" align="start">
               <Calendar
@@ -83,10 +85,10 @@ export function DateTimePicker({ name, required, defaultDate }: DateTimePickerPr
         </div>
 
         {/* Time Picker */}
-        <div className="space-y-2">
-          <Label>Jam</Label>
+        <div className="flex-1 space-y-1.5">
+          <Label className="text-xs text-neutral-500">Jam</Label>
           <Select value={time} onValueChange={setTime}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full h-12 bg-neutral-100 border-0 rounded-xl">
               <SelectValue placeholder="Pilih jam" />
             </SelectTrigger>
             <SelectContent className="max-h-60 rounded-xl shadow-xl border-border">

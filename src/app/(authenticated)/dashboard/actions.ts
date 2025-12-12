@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { logActivity } from "@/lib/logger";
 
 export type ActionState = {
   success: boolean;
@@ -43,6 +44,17 @@ export async function createEvent(
   const eventType = formData.get("event_type") as string || "regular";
   const isOuting = formData.get("is_outing") === "true";
   const mapsLink = formData.get("maps_link") as string;
+  
+  // Liturgy fields
+  const sermonPassage = formData.get("sermon_passage") as string;
+  const benediction = formData.get("benediction") as string;
+  const songsRaw = formData.get("songs") as string;
+  let songs = [];
+  try {
+    songs = songsRaw ? JSON.parse(songsRaw) : [];
+  } catch {
+    songs = [];
+  }
 
   if (!title || !eventDate) {
     return {
@@ -63,6 +75,9 @@ export async function createEvent(
       event_type: eventType,
       is_outing: isOuting,
       maps_link: mapsLink || null,
+      sermon_passage: sermonPassage || null,
+      benediction: benediction || null,
+      songs: songs.length > 0 ? songs : null,
     })
     .select("id")
     .single();
@@ -95,6 +110,9 @@ export async function createEvent(
   }
 
   revalidatePath("/dashboard");
+
+  // Audit log
+  await logActivity("CREATE_EVENT", `Created event: ${title}`);
 
   return {
     success: true,

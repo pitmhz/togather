@@ -2,12 +2,16 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { format, differenceInDays, isToday } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
-import { CalendarDays, MapPin, User, History } from "lucide-react";
+import { CalendarDays, MapPin, User, History, Book } from "lucide-react";
 import Link from "next/link";
 
 import { DailyVerse } from "@/components/daily-verse";
 import { BackgroundPattern } from "@/components/ui/background-pattern";
 import { BirthdayWidget } from "./birthday-widget";
+import { DashboardTools } from "@/components/dashboard-tools";
+import { DashboardHero } from "@/components/dashboard-hero";
+import { RefreshButton } from "@/components/refresh-button";
+import { isAdminAsync } from "@/lib/user-role";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -63,9 +67,9 @@ function getCountdownBadge(eventDate: Date) {
       </Badge>
     );
   }
-  
+
   const daysUntil = differenceInDays(eventDate, new Date());
-  
+
   if (daysUntil > 0 && daysUntil <= 3) {
     return (
       <Badge className="text-[10px] px-2 py-0.5 bg-[#FADEC9] text-[#D9730D] border-0 rounded-sm">
@@ -73,11 +77,11 @@ function getCountdownBadge(eventDate: Date) {
       </Badge>
     );
   }
-  
+
   return null;
 }
 
-function EventCard({ event, isPast = false, isSlider = false }: { event: EventWithRoles; isPast?: boolean; isSlider?: boolean }) {
+function EventCard({ event, isPast = false, isSlider = false, locale = idLocale }: { event: EventWithRoles; isPast?: boolean; isSlider?: boolean; locale?: any }) {
   if (isSlider) {
     return (
       <Link href={`/events/${event.id}`} className="block h-full">
@@ -85,9 +89,9 @@ function EventCard({ event, isPast = false, isSlider = false }: { event: EventWi
           <CardContent className="p-5 h-full flex flex-col relative">
             {/* Top: Date & Status */}
             <div className="flex justify-between items-start mb-4">
-            <div className="flex-shrink-0 w-14 h-14 rounded-md flex flex-col items-center justify-center bg-[#F7F7F5] border border-[#E3E3E3] relative">
+              <div className="flex-shrink-0 w-14 h-14 rounded-md flex flex-col items-center justify-center bg-[#F7F7F5] border border-[#E3E3E3] relative">
                 <span className="text-xs font-medium uppercase text-[#9B9A97]">
-                  {format(new Date(event.event_date), "EEE", { locale: idLocale })}
+                  {format(new Date(event.event_date), "EEE", { locale })}
                 </span>
                 <span className="text-xl font-semibold text-[#37352F]">
                   {format(new Date(event.event_date), "d")}
@@ -116,7 +120,7 @@ function EventCard({ event, isPast = false, isSlider = false }: { event: EventWi
               <div className="flex items-center gap-2 text-sm text-foreground/80">
                 <CalendarDays className="w-4 h-4 text-indigo-500" />
                 <span className="font-medium">
-                  {format(new Date(event.event_date), "EEEE, dd MMMM • HH:mm", { locale: idLocale })}
+                  {format(new Date(event.event_date), "EEEE, dd MMMM • HH:mm", { locale })}
                 </span>
               </div>
               {event.location && (
@@ -137,24 +141,20 @@ function EventCard({ event, isPast = false, isSlider = false }: { event: EventWi
   // Fallback for non-slider (Past Events)
   return (
     <Link href={`/events/${event.id}`}>
-      <Card className={`border-border transition-colors ${
-        isPast 
-          ? "opacity-50 grayscale bg-zinc-50 dark:bg-zinc-900" 
-          : "hover:border-indigo-300 dark:hover:border-indigo-800 cursor-pointer"
-      }`}>
+      <Card className={`border-border transition-colors ${isPast
+        ? "opacity-50 grayscale bg-zinc-50 dark:bg-zinc-900"
+        : "hover:border-indigo-300 dark:hover:border-indigo-800 cursor-pointer"
+        }`}>
         <CardContent className="p-3">
           <div className="flex items-start gap-3">
-            <div className={`flex-shrink-0 w-11 h-11 rounded-lg flex flex-col items-center justify-center ${
-              isPast ? "bg-zinc-100 dark:bg-zinc-800" : "bg-indigo-50 dark:bg-indigo-950"
-            }`}>
-              <span className={`text-xs font-medium uppercase ${
-                isPast ? "text-zinc-500" : "text-indigo-600"
+            <div className={`flex-shrink-0 w-11 h-11 rounded-lg flex flex-col items-center justify-center ${isPast ? "bg-zinc-100 dark:bg-zinc-800" : "bg-indigo-50 dark:bg-indigo-950"
               }`}>
-                {format(new Date(event.event_date), "EEE", { locale: idLocale })}
+              <span className={`text-xs font-medium uppercase ${isPast ? "text-zinc-500" : "text-indigo-600"
+                }`}>
+                {format(new Date(event.event_date), "EEE", { locale })}
               </span>
-              <span className={`text-lg font-bold ${
-                isPast ? "text-zinc-500" : "text-indigo-600"
-              }`}>
+              <span className={`text-lg font-bold ${isPast ? "text-zinc-500" : "text-indigo-600"
+                }`}>
                 {format(new Date(event.event_date), "d")}
               </span>
             </div>
@@ -206,9 +206,18 @@ export default async function DashboardPage() {
     .from("groups")
     .select("id, name")
     .limit(1);
-  
+
   const userGroup = groups?.[0];
   const groupName = userGroup?.name || "Togather";
+
+  // Fetch user profile for hero card
+  const { data: userProfile } = await supabase
+    .from("profiles")
+    .select("full_name, birth_date, mbti")
+    .eq("id", user.id)
+    .single();
+
+  const displayName = userProfile?.full_name || user.email?.split("@")[0] || "User";
 
   // Fetch ALL events (RLS handles visibility)
   const { data: allEvents } = await supabase
@@ -249,43 +258,89 @@ export default async function DashboardPage() {
   }));
 
   const userEmail = user.email || "User";
-  const displayName = userEmail.split("@")[0];
+
+  // Fetch locale (MVP: using first membership found)
+  const { data: currentMember } = await supabase
+    .from("members")
+    .select("locale")
+    .eq("user_id", user.id)
+    .limit(1)
+    .single();
+
+  // Get locale object or default to id
+  const userLocaleCode = currentMember?.locale || "id-ID";
+  // Helper to get actual locale object for server-side date-fns
+  const localeMap: Record<string, any> = { "id-ID": idLocale, "en-US": require("date-fns/locale").enUS, "en-AU": require("date-fns/locale").enAU };
+  const currentLocale = localeMap[userLocaleCode] || idLocale;
+
+  // Check if user is admin
+  const isAdmin = await isAdminAsync(user.email);
+
+  // Fetch latest event with benediction for Devotional Card
+  const { data: devotionalEvent } = await supabase
+    .from("events")
+    .select("id, title, benediction, event_date")
+    .not("benediction", "is", null)
+    .order("event_date", { ascending: false })
+    .limit(1)
+    .single();
 
   return (
     <main className="min-h-screen flex flex-col bg-[#FBFBFA] relative overflow-hidden">
       <BackgroundPattern variant="dove" />
-      {/* Header */}
-      <header className="flex items-center justify-between p-4 border-b border-[#E3E3E3] bg-white">
-        <div className="flex items-center gap-2">
-          <div className="text-xl">🤝</div>
-          <span className="font-heading font-semibold text-lg text-[#37352F]">
-            {groupName}
-          </span>
-        </div>
-        <Link
-          href="/profile"
-          className="w-8 h-8 bg-[#F7F7F5] rounded-full flex items-center justify-center text-[#9B9A97] hover:text-[#37352F] hover:bg-[#E3E3E3] transition-colors"
-        >
-          <User className="w-4 h-4" />
-        </Link>
-      </header>
 
       {/* Content */}
       <div className="flex-1 p-4 pb-24">
-        {/* Welcome */}
+        {/* 1. Member Pass (Hero) */}
         <section className="mb-6">
-          <h1 className="text-2xl font-heading font-semibold text-foreground">
-            Halo, {displayName}
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Kelola jadwal komsel kamu
-          </p>
+          <DashboardHero
+            userName={displayName}
+            fullName={userProfile?.full_name}
+            birthDate={userProfile?.birth_date}
+            mbti={userProfile?.mbti}
+            isAdmin={isAdmin}
+            attendanceHistory={[
+              { date: new Date(2024, 11, 8), day: "Min", status: "present" },
+              { date: new Date(2024, 11, 1), day: "Min", status: "present" },
+              { date: new Date(2024, 10, 24), day: "Min", status: "permission" },
+              { date: new Date(2024, 10, 17), day: "Min", status: "present" },
+              { date: new Date(2024, 10, 10), day: "Min", status: "absent" },
+            ]}
+          />
         </section>
 
-        {/* Daily Verse */}
+        {/* 2. Ayat of the Day */}
         <section className="mb-6">
           <DailyVerse />
         </section>
+
+        {/* Devotional / Benediction Card */}
+        {devotionalEvent?.benediction && (
+          <section className="mb-6">
+            <Card className="border-0 bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-purple-200/30 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+              <CardContent className="p-4 relative">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-1.5 bg-purple-100 rounded-lg">
+                    <Book className="w-4 h-4 text-purple-600" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-purple-900">
+                    🍞 Renungan Minggu Ini
+                  </h3>
+                </div>
+                <blockquote className="text-sm text-purple-800 italic leading-relaxed mb-3 border-l-2 border-purple-300 pl-3">
+                  "{devotionalEvent.benediction}"
+                </blockquote>
+                <Link
+                  href={`/events/${devotionalEvent.id}`}
+                  className="text-xs text-purple-600 hover:text-purple-700 font-medium"
+                >
+                  Dari acara: {devotionalEvent.title} →
+                </Link>
+              </CardContent>
+            </Card>
+          </section>
+        )}
 
         {/* Birthday Widget */}
         <BirthdayWidget members={birthdayMembers} />
@@ -307,7 +362,7 @@ export default async function DashboardPage() {
               <CarouselContent className="-ml-4">
                 {upcomingEvents.map((event) => (
                   <CarouselItem key={event.id} className="pl-4 basis-[90%]">
-                    <EventCard event={event} isSlider />
+                    <EventCard event={event} isSlider locale={currentLocale} />
                   </CarouselItem>
                 ))}
               </CarouselContent>
@@ -336,6 +391,8 @@ export default async function DashboardPage() {
           )}
         </section>
 
+        {/* 4. Alat Bantu Komsel */}
+        <DashboardTools isAdmin={isAdmin} />
         {/* Past Events (Riwayat) - Compact Vertical List */}
         {pastEvents.length > 0 && (
           <section>
@@ -347,7 +404,7 @@ export default async function DashboardPage() {
             </div>
             <div className="flex flex-col gap-3">
               {pastEvents.map((event) => (
-                <EventCard key={event.id} event={event} isPast />
+                <EventCard key={event.id} event={event} isPast locale={currentLocale} />
               ))}
             </div>
           </section>

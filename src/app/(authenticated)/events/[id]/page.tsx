@@ -118,16 +118,29 @@ export default async function EventDetailPage({
   
   const attendance: Attendance[] = (attendanceData || []) as Attendance[];
 
-  // Fetch leader profile for coach report
   const { data: profile } = await supabase
     .from("profiles")
     .select("full_name")
     .eq("id", user.id)
     .single();
 
+  // Fetch locale (MVP: using first membership found)
+  const { data: currentMember } = await supabase
+    .from("members")
+    .select("locale")
+    .eq("user_id", user.id)
+    .limit(1)
+    .single();
+
+  // Get locale object or default to id
+  const userLocaleCode = currentMember?.locale || "id-ID";
+  // Helper to get actual locale object for server-side date-fns
+  const localeMap: Record<string, any> = { "id-ID": idLocale, "en-US": require("date-fns/locale").enUS, "en-AU": require("date-fns/locale").enAU };
+  const currentLocale = localeMap[userLocaleCode] || idLocale;
+
   const leaderName = profile?.full_name || user.email?.split("@")[0] || "Leader";
   const eventDate = new Date(event.event_date);
-  const formattedDate = format(eventDate, "EEEE, dd MMMM yyyy 'pukul' HH:mm", { locale: idLocale });
+  const formattedDate = format(eventDate, "EEEE, dd MMMM yyyy 'pukul' HH:mm", { locale: currentLocale });
 
   return (
     <main className="min-h-screen flex flex-col relative overflow-hidden">

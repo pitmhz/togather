@@ -1,19 +1,30 @@
 import { createClient } from "@/lib/supabase/server";
-import Link from "next/link";
-import { headers } from "next/headers";
-import { Home, PlusCircle, Users, Sparkles } from "lucide-react";
-
 import { isAdminAsync } from "@/lib/user-role";
 import { BottomNavClient } from "./bottom-nav-client";
 
 export async function BottomNav() {
   const supabase = await createClient();
-  
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isAdmin = await isAdminAsync(user?.email);
+  if (!user) return null;
 
-  return <BottomNavClient isAdmin={isAdmin} />;
+  // Fetch user profile for avatar
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .single();
+
+  const isAdmin = await isAdminAsync(user?.email);
+  const displayName = profile?.full_name || user.email || "User";
+
+  return (
+    <BottomNavClient
+      isAdmin={isAdmin}
+      userName={displayName}
+    />
+  );
 }

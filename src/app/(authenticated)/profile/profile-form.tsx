@@ -30,6 +30,7 @@ type Profile = {
   birth_date: string | null;
   mbti: string | null;
   mbti_summary: string | null;
+  locale?: string | null;
 };
 
 type ProfileFormProps = {
@@ -250,6 +251,36 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
               className="bg-white dark:bg-zinc-900"
             />
           </div>
+        </div>
+      </section>
+
+      {/* Region Settings */}
+      <section>
+        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-4 border-b border-gray-200 dark:border-zinc-700 pb-2">
+          Pengaturan Regional
+        </h3>
+        <div className="space-y-2">
+          <Label htmlFor="locale">Format Tanggal & Bahasa</Label>
+          <Select 
+            name="locale" 
+            defaultValue={profile?.locale || "id-ID"}
+            onValueChange={async (val) => {
+              // Auto-save on change
+              await import("./actions").then(mod => mod.updateLocale(val));
+            }}
+          >
+            <SelectTrigger className="bg-white dark:bg-zinc-900">
+              <SelectValue placeholder="Pilih region..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="id-ID">🇮🇩 Indonesia (Senin, 25/12)</SelectItem>
+              <SelectItem value="en-US">🇺🇸 United States (Monday, 12/25)</SelectItem>
+              <SelectItem value="en-AU">🇦🇺 Australia (Monday, 25/12)</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            Mengubah format tanggal yang ditampilkan di aplikasi.
+          </p>
         </div>
       </section>
 

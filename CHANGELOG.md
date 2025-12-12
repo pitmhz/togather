@@ -2,6 +2,70 @@
 
 All notable changes to Togather are documented in this file.
 
+## [1.2.0-beta] - 2025-12-14 - The Luma Update 🌗
+
+We have completed a massive 10-hour sprint involving a Major Visual Overhaul and Architecture Shift.
+
+### 🎨 Visual & UX Overhaul
+- **Luma Design System**: Complete adoption of iOS-style aesthetics with rounded UI, glassmorphism, and clean typography.
+- **Smart Navigation**: Simplified bottom bar (4 items) and a dynamic auto-hiding global header that reacts to scroll direction.
+- **Dashboard 2.0**: New "Hero Card" featuring dynamic time-based greetings and attendance streak visualization.
+- **Safe Sat-Set Protocol**: Optimistic UI updates with haptic feedback for instant interaction response.
+
+### 🏗️ Micro-Apps Architecture
+- **Warby Parker Stack**: Replaced the static tools list with a dynamic apps stack on the Dashboard.
+- **New Micro-Apps**:
+  - **Wheel of Fellowship**: Dedicated page for picking members.
+  - **Ice Breaker Cards**: Interactive card decks.
+  - **Swipe Attendance**: Tinder-style attendance tracking.
+  - **Birthday Spotlight**: Horizontal scrolling list of upcoming birthdays.
+
+### 👥 Member Experience
+- **Advanced Filtering**: Added "Advanced Sort" to member list with Life Stage (Young Pro, Lansia) and MBTI (Introvert/Extrovert) filters.
+- **Compact List**: Redesigned member list with avatars and expandable "Show More" functionality.
+- **FAB**: New Floating Action Button for adding members, positioned perfectly for mobile thumbs.
+
+### 🔐 Security & Data
+- **Privacy Shield**: Automatic masking of sensitive data (emails, phones) based on user privacy settings.
+- **Audit Logs**: Comprehensive tracking of all admin actions (create, update, delete) for accountability.
+
+---
+
+
+Major design system update implementing iOS-style aesthetics inspired by the Luma app.
+
+### 🎨 Design System Changes
+
+#### Global Tokens (`globals.css`)
+- **Background**: Light gray (#F3F4F6) - White cards now pop.
+- **Radius**: Increased base from 6px to 16px (1rem).
+- **Colors**: Updated to modern neutral palette.
+
+#### Button Component
+- **Shape**: Pill-shaped (rounded-full) across all variants.
+- **Size**: Increased touch targets (h-12 default).
+- **Primary**: Pure black with white text.
+- **Destructive**: Soft red background (not harsh).
+
+#### Card Component
+- **Shape**: Rounded-2xl (24px corners).
+- **Style**: White bg, no border, subtle shadow.
+- **Padding**: Reduced for tighter layouts.
+
+#### Input Component
+- **Style**: No borders, gray bubble background.
+- **Focus**: White background with subtle ring.
+
+#### Drawer Component
+- **Shape**: Very rounded top (32px).
+- **Overlay**: Blurred backdrop (backdrop-blur-sm).
+
+### 🆕 New Components
+- **IOSGroup**: Luma-style container for grouped settings.
+  - `<IOSGroup>`, `<IOSGroupItem>`, `<IOSGroupLabel>`
+
+---
+
 ## [1.1-beta] - 2025-12-12 - The "Strategic Core" Checkpoint 🛡️
 
 A massive stability and feature update focusing on Role-Based Access Control (RBAC), Member Demographics, and Developer Tooling. This release marks the stable point before the upcoming Luma Visual Overhaul.
