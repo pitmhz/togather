@@ -58,12 +58,18 @@ function Button({
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (onClick) {
-      // Cast to 'any' to allow checking for Promise without TS shouting
+      // 1. Force cast to 'any' immediately to shut TypeScript up
       const result = onClick(e) as any
 
-      if (result instanceof Promise) {
+      // 2. Duck Typing Check: "Does it look like a Promise?" (Has a .then function)
+      // This completely avoids the 'instanceof' error.
+      if (result && typeof result === 'object' && typeof result.then === 'function') {
         setIsAutoLoading(true)
-        result.finally(() => setIsAutoLoading(false))
+
+        // 3. Handle the promise safely
+        Promise.resolve(result).finally(() => {
+          setIsAutoLoading(false)
+        })
       }
     }
   }
