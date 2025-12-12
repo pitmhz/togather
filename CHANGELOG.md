@@ -2,6 +2,54 @@
 
 All notable changes to Togather are documented in this file.
 
+## [1.1-beta] - 2025-12-12 - The "Strategic Core" Checkpoint 🛡️
+
+A massive stability and feature update focusing on Role-Based Access Control (RBAC), Member Demographics, and Developer Tooling. This release marks the stable point before the upcoming Luma Visual Overhaul.
+
+### 🛡️ Role-Based Access Control (RBAC)
+- **Role System**: Added `role` column (`admin`, `member`, `owner`) to `members` table.
+- **Permission Guards**:
+  - Only Admins can create/edit/delete events.
+  - Only Admins can manage members (Add, Deactivate, Delete).
+  - Only Admins can modify "Secret" server data.
+- **UI Visibility**:
+  - "Crown" icon for Admin/Owner users.
+  - "Tools" page is now locked behind Admin access.
+  - "Add Member" button hidden for non-admins.
+- **Member Management**:
+  - New "Promote to Admin" / "Demote to Member" actions in Drawer.
+  - Added "Deactivate" (Soft Delete) vs "Delete Permanently" options.
+
+### 👥 People Intelligence (Demographics & MBTI)
+- **Life Stage Engine**:
+  - Automatic calculation based on Birth Date.
+  - Categories: Anak (<12), Remaja (12-17), Pemuda (18-25), Young Pro (26-40), Dewasa (41-59), Lansia (60+).
+  - Visual Badges: Color-coded tags on Member Cards and Profile.
+- **MBTI Integration**:
+  - Added MBTI field to Member Profile.
+  - **AI Analysis**: One-click generation of "Personality Summary" using Gemini AI.
+  - Visual MBTI Card with personality type display.
+- **Data Seeder (Dev Tool)**:
+  - "Secret Bunker" tool to seed random Birth Dates and MBTI types to test demographics.
+
+### 🛠️ UX & Developer Experience
+- **"Secret Bunker" Tools Page**: A dedicated Admin-only area for dangerous actions (Seeding, Cache Clearing).
+- **Global Toast System**: Replaced alerts with beautiful, consistent `sonner` toasts (Top Center).
+- **Date Standardization (Indonesia)**:
+  - Global switch to `dd MMMM yyyy` (e.g., "14 Agustus 1945").
+  - Updated standard for Dashboard, Event Details, and WhatsApp generator.
+  - Hardened parsing logic to prevent Timezone off-by-one errors.
+- **Global Localization Prep (i18n)**:
+  - Database schema updated to support `locale` ('id-ID', 'en-US', 'en-AU').
+  - Utility functions refactored for dynamic locale injection.
+
+### 🔒 Security & Stability
+- **Middleware Robustness**: Enhanced session refreshing and route protection.
+- **Safe Actions**: Server Actions now include role checks before execution.
+- **Hydration Fixes**: Solved React mismatch errors in Button and Layout.
+
+---
+
 ## [1.1.0] - 2025-12-12 - The "Group Architecture" Release 🏢
 
 Major refactoring session: Moved from single-user to SaaS-style group architecture.
