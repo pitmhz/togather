@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ArrowUpDown, Crown } from "lucide-react";
 
 import { MemberDetailDrawer } from "./member-detail-drawer";
-import { getLifeStage } from "@/lib/utils";
+import { getLifeStage, formatDate } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -138,9 +138,16 @@ export function MembersGrid({ members: initialMembers, isAdmin }: MembersGridPro
               </div>
               {/* Name + Attendance */}
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-[#37352F] truncate text-sm">
-                  {member.name}
-                </p>
+                <div className="flex justify-between items-start">
+                  <p className="font-medium text-[#37352F] truncate text-sm">
+                    {member.name}
+                  </p>
+                </div>
+                {member.birth_date && (
+                  <p className="text-[10px] text-muted-foreground mb-1">
+                    {formatDate(member.birth_date, "dd MMMM yyyy")}
+                  </p>
+                )}
                 <AttendanceRate dots={member.attendanceDots} />
                 
                 {/* Meta Badges */}
@@ -158,7 +165,10 @@ export function MembersGrid({ members: initialMembers, isAdmin }: MembersGridPro
                     const stage = getLifeStage(member.birth_date);
                     if (!stage) return null;
                     return (
-                      <Badge className={`text-[10px] px-1.5 py-0 border-0 ${stage.color}`}>
+                      <Badge 
+                        variant="secondary"
+                        className={`text-[10px] px-1.5 py-0 shadow-none ${stage.color}`}
+                      >
                         {stage.label}
                       </Badge>
                     );

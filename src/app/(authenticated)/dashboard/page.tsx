@@ -116,7 +116,7 @@ function EventCard({ event, isPast = false, isSlider = false }: { event: EventWi
               <div className="flex items-center gap-2 text-sm text-foreground/80">
                 <CalendarDays className="w-4 h-4 text-indigo-500" />
                 <span className="font-medium">
-                  {format(new Date(event.event_date), "EEEE, HH:mm", { locale: idLocale })}
+                  {format(new Date(event.event_date), "EEEE, dd MMMM • HH:mm", { locale: idLocale })}
                 </span>
               </div>
               {event.location && (

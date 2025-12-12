@@ -40,7 +40,7 @@ function SubmitButton() {
   return (
     <Button
       type="submit"
-      className="flex-1 bg-[#191919] hover:bg-[#2F2F2F] text-white"
+      className="flex-1 w-full bg-[#191919] hover:bg-[#2F2F2F] text-white"
       disabled={pending}
     >
       {pending ? "Menyimpan..." : "Simpan"}
@@ -71,10 +71,10 @@ export function RoleItem({
 
   useEffect(() => {
     if (state?.success) {
-      toast.success(state.message);
+      toast.success(state.message + " ✅");
       setOpen(false);
     } else if (state?.success === false) {
-      toast.error(state.message);
+      toast.error(state.message + " ❌");
     }
   }, [state]);
 
@@ -101,12 +101,12 @@ export function RoleItem({
     startUnassign(async () => {
       const result = await updateRoleWithIds(null, formData);
       if (result?.success) {
-        toast.success("Petugas berhasil dikosongkan");
+        toast.success("Tugas dikosongkan 🧹");
         setOpen(false);
         setAssigneeName("");
         setMemberId(undefined);
       } else {
-        toast.error(result?.message || "Gagal mengosongkan petugas");
+        toast.error(result?.message || "Gagal mengosongkan petugas ❌");
       }
     });
   };

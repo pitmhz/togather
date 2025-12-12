@@ -127,7 +127,7 @@ export default async function EventDetailPage({
 
   const leaderName = profile?.full_name || user.email?.split("@")[0] || "Leader";
   const eventDate = new Date(event.event_date);
-  const formattedDate = format(eventDate, "EEEE, d MMMM yyyy 'pukul' HH:mm", { locale: idLocale });
+  const formattedDate = format(eventDate, "EEEE, dd MMMM yyyy 'pukul' HH:mm", { locale: idLocale });
 
   return (
     <main className="min-h-screen flex flex-col relative overflow-hidden">

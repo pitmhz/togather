@@ -1,6 +1,9 @@
+"use client"
+
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+import { Loader2 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -41,19 +44,61 @@ function Button({
   variant,
   size,
   asChild = false,
+  onClick,
+  disabled,
+  isLoading,
+  children,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
+    isLoading?: boolean
   }) {
-  const Comp = asChild ? Slot : "button"
+  const [isAutoLoading, setIsAutoLoading] = React.useState(false)
+
+  const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (onClick) {
+      // Check if the onClick is an async function (returns a promise)
+      const result = onClick(e)
+      if (result instanceof Promise) {
+        setIsAutoLoading(true)
+        try {
+          await result
+        } finally {
+          setIsAutoLoading(false)
+        }
+      }
+    }
+  }
+
+  const showLoading = isLoading || isAutoLoading
+
+  // SAFE RENDER: If asChild is true, we CANNOT render the Loader2 next to children
+  // because Slot requires a single child. So we skip the loader for asChild links.
+  if (asChild) {
+    return (
+      <Slot
+        data-slot="button"
+        className={cn(buttonVariants({ variant, size, className }))}
+        // Slot merges props, so onClick works here too if passed
+        {...props}
+      >
+        {children}
+      </Slot>
+    )
+  }
 
   return (
-    <Comp
+    <button
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+      onClick={handleClick}
+      disabled={disabled || showLoading}
       {...props}
-    />
+    >
+      {showLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+      {children}
+    </button>
   )
 }
 

@@ -4,10 +4,11 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { toast } from "sonner";
 
-import { deactivateMember, deleteMember, promoteMember, demoteMember } from "./actions";
+import { deactivateMember, deleteMember, promoteMember, demoteMember, generateMemberMbtiSummaryAction } from "./actions";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { MbtiCard } from "@/components/mbti-card";
 import {
   Drawer,
   DrawerClose,
@@ -32,6 +33,8 @@ type Member = {
   attendanceDots?: ("present" | "absent")[];
   role?: "admin" | "member" | "owner"; // Added role
   birth_date?: string | null; // Added birth_date
+  mbti?: string | null;
+  mbti_summary?: string | null;
 };
 
 type MemberDetailDrawerProps = {
@@ -91,10 +94,10 @@ export function MemberDetailDrawer({
     startTransition(async () => {
       const result = await deactivateMember(member.id);
       if (result?.success) {
-        toast.success(result.message);
+        toast.success(result.message + " 🚫");
         onOpenChange(false);
       } else {
-        toast.error(result?.message || "Gagal menonaktifkan member.");
+        toast.error(result?.message || "Gagal menonaktifkan member. ❌");
       }
     });
   };
@@ -103,10 +106,10 @@ export function MemberDetailDrawer({
     startTransition(async () => {
       const result = await deleteMember(member.id);
       if (result?.success) {
-        toast.success(result.message);
+        toast.success(result.message + " 🗑️");
         onOpenChange(false);
       } else {
-        toast.error(result?.message || "Gagal menghapus member.");
+        toast.error(result?.message || "Gagal menghapus member. ❌");
       }
     });
   };
@@ -116,10 +119,10 @@ export function MemberDetailDrawer({
     startTransition(async () => {
       const result = await promoteMember(member.id);
       if (result?.success) {
-        toast.success(result.message);
+        toast.success(result.message + " 👑");
         onOpenChange(false);
       } else {
-        toast.error(result?.message || "Gagal mempromosikan member.");
+        toast.error(result?.message || "Gagal mempromosikan member. ❌");
       }
     });
   }
@@ -129,10 +132,10 @@ export function MemberDetailDrawer({
     startTransition(async () => {
       const result = await demoteMember(member.id);
       if (result?.success) {
-        toast.success(result.message);
+        toast.success(result.message + " ⬇️");
         onOpenChange(false);
       } else {
-        toast.error(result?.message || "Gagal menurunkan member.");
+        toast.error(result?.message || "Gagal menurunkan member. ❌");
       }
     });
   }
@@ -163,9 +166,16 @@ export function MemberDetailDrawer({
                   const stage = getLifeStage(member.birth_date);
                   if (!stage) return null;
                   return (
-                    <Badge className={`text-[10px] px-1.5 py-0 border-0 ${stage.color}`}>
-                      {stage.label}
-                    </Badge>
+                    <>
+                      <Badge className={`text-[10px] px-1.5 py-0 border-0 ${stage.color}`}>
+                        {stage.label}
+                      </Badge>
+                      {member.birth_date && (
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(member.birth_date), "dd MMMM yyyy", { locale: id })}
+                        </span>
+                      )}
+                    </>
                   );
                 })()}
                 
@@ -198,6 +208,18 @@ export function MemberDetailDrawer({
               Role: <strong>{member.role || 'member'}</strong>
             </p>
           </div>
+
+          {/* AI Personality Card */}
+          <MbtiCard
+            mbtiType={member.mbti || null}
+            summary={member.mbti_summary || null}
+            memberName={member.name}
+            onGenerate={async () => {
+              // This runs as a server action call from the client
+              return await generateMemberMbtiSummaryAction(member.id);
+            }}
+            canGenerate={isAdmin}
+          />
 
           {/* WhatsApp Button */}
           {whatsappUrl && (

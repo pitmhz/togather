@@ -5,8 +5,9 @@ import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import { Cake, Users, Brain, Sparkles } from "lucide-react";
 
-import { updateProfile, type ActionState } from "./actions";
+import { updateProfile, generateMbtiSummaryAction, type ActionState } from "./actions";
 import { MbtiPicker } from "@/components/mbti-picker";
+import { MbtiCard } from "@/components/mbti-card";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,9 +68,9 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
 
   useEffect(() => {
     if (state?.success) {
-      toast.success(state.message);
+      toast.success("Profil berhasil diperbarui! ✅");
     } else if (state?.success === false) {
-      toast.error(state.message);
+      toast.error(state.message + " ❌");
     }
   }, [state]);
 
@@ -205,21 +206,17 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
             </Select>
           </div>
 
-          {/* MBTI Summary Display */}
-          {profile?.mbti_summary && (
-            <div className="p-4 bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-100 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-4 h-4 text-purple-500" />
-                <span className="text-sm font-medium text-purple-700">Analisa AI</span>
-              </div>
-              <div className="text-sm text-gray-700 whitespace-pre-wrap">
-                {profile.mbti_summary}
-              </div>
-              <p className="text-xs text-purple-500 mt-3">
-                ✨ Simpan profil untuk refresh analisa jika MBTI berubah
-              </p>
-            </div>
-          )}
+          {/* MBTI Card Display */}
+          <MbtiCard
+            mbtiType={profile?.mbti || null}
+            summary={profile?.mbti_summary || null}
+            memberName={firstName}
+            onGenerate={async () => {
+              if (!profile?.mbti) return { success: false, message: "No MBTI" };
+              return await generateMbtiSummaryAction(profile.mbti);
+            }}
+            canGenerate={true}
+          />
         </div>
       </section>
 

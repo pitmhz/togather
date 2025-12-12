@@ -117,7 +117,40 @@ export async function updatePassword(
 
   revalidatePath("/profile");
 
+  revalidatePath("/profile");
   return { success: true, message: "Password berhasil diupdate!" };
+}
+
+export async function generateMbtiSummaryAction(mbti: string): Promise<ActionState> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { success: false, message: "Unauthorized" };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile) return { success: false, message: "Profile not found" };
+
+  try {
+    const summary = await generateMBTISummary(mbti, profile.full_name || "User");
+    
+    const { error } = await supabase
+      .from("profiles")
+      .update({ mbti_summary: summary })
+      .eq("id", user.id);
+
+    if (error) throw error;
+
+    revalidatePath("/profile");
+    return { success: true, message: "Analisa MBTI berhasil dibuat! ✨" };
+  } catch (error) {
+    console.error("Geneartion Error:", error);
+    return { success: false, message: "Gagal generate analisa." };
+  }
 }
 
 

@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 
 import { ToolsTabs } from "./tools-tabs";
+import { SeedButton } from "./seed-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BackgroundPattern } from "@/components/ui/background-pattern";
@@ -23,6 +24,13 @@ export default async function ToolsPage() {
   if (!user) {
     redirect("/login");
   }
+
+  // Fetch Member Role for Advanced Zone access
+  const { data: memberRole } = await supabase
+    .from("members")
+    .select("role")
+    .eq("email", user.email)
+    .single();
 
   // Get today's date at start of day for comparison
   const today = new Date();
@@ -139,6 +147,59 @@ export default async function ToolsPage() {
           </h2>
           <ToolsTabs attendees={attendees} />
         </div>
+        {/* Advanced Zone - Safe Bunker (Admins Only) */}
+        {memberRole?.role === 'admin' && (
+          <div className="pt-6 border-t border-gray-200 dark:border-zinc-800">
+             <div className="flex items-center gap-2 mb-3">
+               <div className="h-px flex-1 bg-amber-200"></div>
+               <h2 className="text-xs font-bold text-amber-600 uppercase tracking-widest">
+                 ⚠️ Advanced Zone (Dev Only)
+               </h2>
+               <div className="h-px flex-1 bg-amber-200"></div>
+             </div>
+             
+             <Card className="border-dashed border-2 border-amber-200 bg-amber-50/30 dark:bg-amber-950/10">
+               <CardContent className="p-4 space-y-4">
+                 
+                 {/* Feature 1: Data Seeder */}
+                 <div className="flex items-center justify-between gap-4">
+                   <div>
+                     <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-500 flex items-center gap-2">
+                       <Sparkles className="w-3 h-3" />
+                       Random Data Seeder
+                     </h3>
+                     <p className="text-xs text-amber-700/70 dark:text-amber-600">
+                       Isi data member kosong dengan data dummy acak.
+                       <br/>Use responsibly.
+                     </p>
+                   </div>
+                   <SeedButton 
+                    variant="outline" 
+                    className="border-amber-300 text-amber-700 hover:bg-amber-100 hover:text-amber-800 h-8 text-xs"
+                   />
+                 </div>
+
+                 <div className="h-px bg-amber-200/50 w-full" />
+
+                 {/* Feature 2: Cache Reset (Placeholder) */}
+                 <div className="flex items-center justify-between gap-4 opacity-50">
+                    <div>
+                     <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-500">
+                       Reset App Cache
+                     </h3>
+                     <p className="text-xs text-amber-700/70 dark:text-amber-600">
+                       Clear server actions cache manually.
+                     </p>
+                   </div>
+                   <Button variant="outline" size="sm" disabled className="h-8 text-xs">
+                     Coming Soon
+                   </Button>
+                 </div>
+
+               </CardContent>
+             </Card>
+          </div>
+        )}
       </div>
     </main>
   );

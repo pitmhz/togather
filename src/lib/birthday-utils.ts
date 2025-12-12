@@ -7,9 +7,16 @@ type Member = {
   gender?: string | null;
 };
 
+// Helper for robust parsing
+function parseDate(dateStr: string): Date {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  if (!year || !month || !day) return new Date(dateStr);
+  return new Date(year, month - 1, day);
+}
+
 export function generateBirthdayWish(member: Member): string {
   const pronoun = member.gender === 'L' ? 'kakak' : member.gender === 'P' ? 'cici' : 'kak';
-  const eventDate = new Date(member.birth_date);
+  const eventDate = parseDate(member.birth_date);
   const formattedDate = format(eventDate, "d MMMM", { locale: idLocale });
   
   const text = `🎂 *Selamat Ulang Tahun ${pronoun} ${member.name}!* 🎉
@@ -30,7 +37,7 @@ export function generateBirthdayWishRaw(member: Member): string {
 // Get months until birthday
 export function getDaysUntilBirthday(birthDate: string): number {
   const today = new Date();
-  const birth = new Date(birthDate);
+  const birth = parseDate(birthDate);
   
   // Set birth date to this year
   const thisYearBirthday = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
@@ -47,6 +54,6 @@ export function getDaysUntilBirthday(birthDate: string): number {
 // Check if birthday is this month
 export function isBirthdayThisMonth(birthDate: string): boolean {
   const today = new Date();
-  const birth = new Date(birthDate);
+  const birth = parseDate(birthDate);
   return birth.getMonth() === today.getMonth();
 }

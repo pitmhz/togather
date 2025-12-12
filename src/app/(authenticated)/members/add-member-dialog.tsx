@@ -45,11 +45,11 @@ export function AddMemberDialog() {
 
   useEffect(() => {
     if (state?.success) {
-      toast.success(state.message);
+      toast.success(state.message + " 🎉");
       setOpen(false);
       setGender("");
     } else if (state?.success === false) {
-      toast.error(state.message);
+      toast.error(state.message + " ❌");
     }
   }, [state]);
 

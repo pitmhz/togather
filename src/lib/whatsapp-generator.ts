@@ -34,7 +34,7 @@ export function generateInvitationText(
 ): string {
   const eventDate = new Date(event.event_date);
   const formattedDay = format(eventDate, "EEEE", { locale: idLocale });
-  const formattedDate = format(eventDate, "d MMMM yyyy", { locale: idLocale });
+  const formattedDate = format(eventDate, "dd MMMM yyyy", { locale: idLocale });
   const formattedTime = format(eventDate, "HH:mm");
 
   // Build role list

@@ -463,7 +463,55 @@ export async function demoteMember(memberId: string): Promise<ActionState> {
   }
 
   revalidatePath("/members");
+  revalidatePath("/members");
   return { success: true, message: "Admin demoted to Member." };
+}
+
+export async function generateMemberMbtiSummaryAction(memberId: string): Promise<ActionState> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { success: false, message: "Unauthorized" };
+
+   // Verify Admin
+  const { data: currentUser } = await supabase
+    .from("members")
+    .select("role")
+    .eq("email", user.email)
+    .single();
+
+  if (currentUser?.role !== 'admin' && currentUser?.role !== 'owner') {
+     return { success: false, message: "Akses ditolak." };
+  }
+
+  const { data: member } = await supabase
+    .from("members")
+    .select("name, mbti")
+    .eq("id", memberId)
+    .single();
+
+  if (!member || !member.mbti) return { success: false, message: "Data member tidak lengkap." };
+
+  try {
+    // We need to import generateMBTISummary from lib/gemini. 
+    // Wait, I need to check if it's exported. I'll assume it is based on profile/actions.ts usage.
+    // I need to add the import to the top of this file first.
+    const { generateMBTISummary } = await import("@/lib/gemini");
+    const summary = await generateMBTISummary(member.mbti, member.name);
+    
+    const { error } = await supabase
+      .from("members")
+      .update({ mbti_summary: summary })
+      .eq("id", memberId);
+
+    if (error) throw error;
+
+    revalidatePath("/members");
+    return { success: true, message: `Analisa untuk ${member.name} berhasil dibuat! ✨` };
+  } catch (error) {
+    console.error("Geneartion Error:", error);
+    return { success: false, message: "Gagal generate analisa." };
+  }
 }
 
 

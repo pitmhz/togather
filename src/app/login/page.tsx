@@ -65,9 +65,9 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (state?.success) {
-      toast.success(state.message);
+      toast.success("Magic Link terkirim! Cek email kamu. 📧");
     } else if (state?.success === false) {
-      toast.error(state.message);
+      toast.error(state.message + " ❌");
     }
   }, [state]);
 

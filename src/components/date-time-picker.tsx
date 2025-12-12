@@ -69,7 +69,7 @@ export function DateTimePicker({ name, required, defaultDate }: DateTimePickerPr
                 {date ? format(date, "d MMM yyyy", { locale: idLocale }) : "Pilih tanggal"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent className="w-auto p-0 rounded-xl shadow-xl border-border" align="start">
               <Calendar
                 mode="single"
                 selected={date}
@@ -86,10 +86,10 @@ export function DateTimePicker({ name, required, defaultDate }: DateTimePickerPr
         <div className="space-y-2">
           <Label>Jam</Label>
           <Select value={time} onValueChange={setTime}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Pilih jam" />
             </SelectTrigger>
-            <SelectContent className="max-h-60">
+            <SelectContent className="max-h-60 rounded-xl shadow-xl border-border">
               {timeSlots.map((slot) => (
                 <SelectItem key={slot} value={slot}>
                   {slot}
