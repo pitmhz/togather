@@ -127,8 +127,23 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    /* Allow browser font scaling to work - don't override with fixed px */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
   body {
     @apply bg-background text-foreground antialiased;
+    /* Relative line-height for accessibility */
+    line-height: 1.5;
+  }
+  /* Ensure headings have proper line-height for scaled text */
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.25;
+  }
+  /* Ensure paragraphs and spans allow text to breathe */
+  p, span, label {
+    line-height: 1.5;
   }
 }
 

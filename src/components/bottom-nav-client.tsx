@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, PlusCircle, Users, Sparkles } from "lucide-react";
+import { Home, PlusCircle, Users } from "lucide-react";
 import Image from "next/image";
+import { motion } from "framer-motion";
 
 import { cn, getAvatarUrl } from "@/lib/utils";
+import { useScrollDirection } from "@/lib/hooks/use-scroll-direction";
 
 type BottomNavClientProps = {
   isAdmin: boolean;
@@ -14,6 +16,7 @@ type BottomNavClientProps = {
 
 export function BottomNavClient({ isAdmin, userName }: BottomNavClientProps) {
   const pathname = usePathname();
+  const { scrollDirection, scrollY } = useScrollDirection({ threshold: 10 });
 
   // Hide nav on focus mode pages (create event, edit profile, etc.)
   const focusModePages = ["/events/new", "/profile/edit"];
@@ -26,14 +29,28 @@ export function BottomNavClient({ isAdmin, userName }: BottomNavClientProps) {
   const isProfileActive = pathname.startsWith("/profile");
   const avatarUrl = getAvatarUrl(userName);
 
+  // Hide when scrolling down AND past the threshold (50px)
+  const isHidden = scrollDirection === "down" && scrollY > 50;
+
   const navItems = [
     { href: "/dashboard", icon: Home, label: "Home", show: true },
     { href: "/events/new", icon: PlusCircle, label: "Buat", show: isAdmin },
     { href: "/members", icon: Users, label: "Jemaat", show: true },
   ];
 
+  const navVariants = {
+    visible: { y: 0 },
+    hidden: { y: "100%" },
+  };
+
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-50">
+    <motion.nav
+      variants={navVariants}
+      initial="visible"
+      animate={isHidden ? "hidden" : "visible"}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-50"
+    >
       <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-t border-border">
         <div className="flex items-center justify-around h-16">
           {navItems.filter(item => item.show).map((item) => {
@@ -90,6 +107,6 @@ export function BottomNavClient({ isAdmin, userName }: BottomNavClientProps) {
       </div>
       {/* Safe area for iOS home indicator */}
       <div className="h-safe-area-inset-bottom bg-white/80 dark:bg-zinc-900/80" />
-    </nav>
+    </motion.nav>
   );
 }

@@ -17,14 +17,15 @@ import {
   Lock
 } from "lucide-react";
 
-import { signOut } from "@/app/(authenticated)/dashboard/actions";
 import { ClaimAdminButton } from "./claim-admin-button";
+import { LogoutDialog } from "./logout-dialog";
 import { isAdminAsync } from "@/lib/user-role";
 import { formatDate, maskData } from "@/lib/utils";
 
 import { IOSListGroup, IOSListHeader, IOSListItem, IOSListSeparator } from "@/components/ui/ios-list";
 import { ProfileAvatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { ChangelogList } from "@/components/changelog-list";
 
 // MBTI Type names in Indonesian
 const MBTI_NAMES: Record<string, string> = {
@@ -251,21 +252,17 @@ export default async function ProfilePage() {
             />
           </Link>
           <IOSListSeparator />
-          <form action={signOut}>
-            <button type="submit" className="w-full">
-              <IOSListItem
-                icon={<LogOut size={20} className="text-red-500" />}
-                label="Keluar"
-                isDestructive
-                hasChevron={false}
-              />
-            </button>
-          </form>
+          <LogoutDialog />
         </IOSListGroup>
 
         {/* Dev Only: Claim Admin */}
         <div className="flex justify-center mb-4">
           <ClaimAdminButton />
+        </div>
+
+        {/* Changelog */}
+        <div className="mb-6 px-1">
+          <ChangelogList />
         </div>
 
         {/* Footer */}
@@ -274,7 +271,7 @@ export default async function ProfilePage() {
             togather
           </p>
           <p className="text-xs text-neutral-400 mt-1">
-            Versi 1.2.0
+            Versi 1.3.0
           </p>
           <p className="text-xs text-neutral-400 mt-2">
             <Link href="/privacy" className="hover:underline">Syarat & Privasi</Link>

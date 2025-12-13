@@ -66,12 +66,11 @@ export default async function EventDetailPage({
   // Check if user is admin (database-based check)
   const isAdmin = await isAdminAsync(user.email);
 
-  // Fetch event
+  // Fetch event - RLS handles visibility, don't filter by user_id
   const { data: event, error: eventError } = await supabase
     .from("events")
     .select("*")
     .eq("id", id)
-    .eq("user_id", user.id)
     .single();
 
   if (eventError) {
@@ -94,7 +93,7 @@ export default async function EventDetailPage({
   // Debug logging
   console.log("[EventDetailPage] Roles Query for event_id:", id);
   console.log("[EventDetailPage] Roles Data:", JSON.stringify(rolesData));
-  
+
   if (rolesError) {
     console.error("[EventDetailPage] Roles Error:", rolesError);
   }
@@ -107,7 +106,7 @@ export default async function EventDetailPage({
     .from("members")
     .select("id, name, status, unavailable_reason, unavailable_until")
     .order("name", { ascending: true });
-  
+
   const members = membersData || [];
 
   // Fetch attendance records
@@ -115,7 +114,7 @@ export default async function EventDetailPage({
     .from("event_attendance")
     .select("member_id, status")
     .eq("event_id", id);
-  
+
   const attendance: Attendance[] = (attendanceData || []) as Attendance[];
 
   const { data: profile } = await supabase
@@ -145,18 +144,6 @@ export default async function EventDetailPage({
   return (
     <main className="min-h-screen flex flex-col relative overflow-hidden">
       <HolyAccent type="bible" />
-      {/* Header */}
-      <header className="flex items-center justify-between p-4 border-b border-[#E3E3E3] bg-white">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/dashboard">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-        </Button>
-        <h1 className="text-sm font-medium text-[#37352F]">
-          Detail Event
-        </h1>
-        <div className="w-10" /> {/* Spacer for centering */}
-      </header>
 
       {/* Content */}
       <div className="flex-1 p-4 pb-24 bg-[#FBFBFA]">
@@ -182,61 +169,61 @@ export default async function EventDetailPage({
 
         {/* Conditional: Roles Section (Regular only) */}
         {event.event_type !== "gabungan" && (
-        <section>
-          <div className="flex items-center gap-2 mb-4">
-            <Users className="w-4 h-4 text-indigo-600" />
-            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-              Daftar Petugas
-            </h2>
-          </div>
-
-          {/* Virtual CG Leader Card (Pinned, Read-only) */}
-          <div className="mb-2">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-indigo-50 dark:bg-indigo-950 border border-indigo-200 dark:border-indigo-800">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
-                  <Crown className="w-4 h-4 text-indigo-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">CG Leader</p>
-                  <p className="font-medium text-foreground">{leaderName}</p>
-                </div>
-              </div>
-              <Badge className="bg-indigo-600 text-white text-xs">Tetap</Badge>
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <Users className="w-4 h-4 text-indigo-600" />
+              <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Daftar Petugas
+              </h2>
             </div>
-          </div>
 
-          {/* Roles List (Filter out CG Leader if exists) */}
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            {roles && roles.length > 0 ? (
-              roles
-                .filter((role: Role) => role.role_name.toLowerCase() !== "cg leader")
-                .map((role: Role) => (
-                  <RoleItem key={role.id} role={role} eventId={id} members={members} isAdmin={isAdmin} />
-                ))
-            ) : (
-              <div className="col-span-2 text-center py-4 text-muted-foreground text-sm">
-                Tidak ada posisi petugas lainnya.
+            {/* Virtual CG Leader Card (Pinned, Read-only) */}
+            <div className="mb-2">
+              <div className="flex items-center justify-between p-3 rounded-lg bg-indigo-50 dark:bg-indigo-950 border border-indigo-200 dark:border-indigo-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                    <Crown className="w-4 h-4 text-indigo-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">CG Leader</p>
+                    <p className="font-medium text-foreground">{leaderName}</p>
+                  </div>
+                </div>
+                <Badge className="bg-indigo-600 text-white text-xs">Tetap</Badge>
               </div>
-            )}
-          </div>
-        </section>
+            </div>
+
+            {/* Roles List (Filter out CG Leader if exists) */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              {roles && roles.length > 0 ? (
+                roles
+                  .filter((role: Role) => role.role_name.toLowerCase() !== "cg leader")
+                  .map((role: Role) => (
+                    <RoleItem key={role.id} role={role} eventId={id} members={members} isAdmin={isAdmin} />
+                  ))
+              ) : (
+                <div className="col-span-2 text-center py-4 text-muted-foreground text-sm">
+                  Tidak ada posisi petugas lainnya.
+                </div>
+              )}
+            </div>
+          </section>
         )}
 
         {/* Conditional: Marketing Blast (Gabungan only) */}
         {event.event_type === "gabungan" && (
-        <section>
-          <div className="flex items-center gap-2 mb-4">
-            <Megaphone className="w-4 h-4 text-indigo-600" />
-            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-              Marketing
-            </h2>
-          </div>
-          <MarketingBlast
-            event={event}
-            eventUrl={typeof window !== "undefined" ? window.location.href : `https://togather.vercel.app/events/${id}`}
-          />
-        </section>
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <Megaphone className="w-4 h-4 text-indigo-600" />
+              <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Marketing
+              </h2>
+            </div>
+            <MarketingBlast
+              event={event}
+              eventUrl={typeof window !== "undefined" ? window.location.href : `https://togather.vercel.app/events/${id}`}
+            />
+          </section>
         )}
 
         {/* Attendance Section */}

@@ -199,3 +199,39 @@ export async function updatePrivacyMask(masked: boolean): Promise<ActionState> {
   revalidatePath("/profile/edit");
   return { success: true, message: masked ? "Mode privasi diaktifkan! 🔒" : "Mode privasi dinonaktifkan." };
 }
+
+export async function updateMood(mood: string | null): Promise<ActionState> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { success: false, message: "Unauthorized" };
+
+  // Update the member record for this user
+  const { error } = await supabase
+    .from("members")
+    .update({ current_mood: mood })
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("[updateMood] Error:", error);
+    return { success: false, message: "Gagal menyimpan mood." };
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/members");
+  revalidatePath("/profile");
+
+  const moodMessages: Record<string, string> = {
+    sick: "Semoga lekas sembuh! 🙏",
+    traveling: "Selamat jalan! ✈️",
+    exam: "Semangat ujiannya! 📚",
+    mourning: "Turut berduka cita 💐",
+    happy: "Senang mendengarnya! 🎉",
+  };
+
+  return { 
+    success: true, 
+    message: mood ? moodMessages[mood] || "Mood tersimpan!" : "Mood dihapus." 
+  };
+}
+

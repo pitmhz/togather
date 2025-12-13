@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { Analytics } from "@vercel/analytics/next";
-import { GlobalHeader } from "@/components/global-header";
+import { GlobalHeaderServer } from "@/components/global-header-server";
 import "./globals.css";
 
 const inter = Inter({
@@ -32,7 +32,7 @@ export default function RootLayout({
       >
         {/* Mobile-first container - looks like a phone even on desktop */}
         <div className="max-w-[480px] mx-auto min-h-screen bg-background shadow-2xl border-x border-border relative">
-          <GlobalHeader />
+          <GlobalHeaderServer />
           <div className="pt-14">
             {children}
           </div>

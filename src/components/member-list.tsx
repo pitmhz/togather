@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ChevronRight, ChevronDown, Shield, ArrowUpDown } from "lucide-react";
 import { cn, getAvatarUrl, triggerHaptic } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { getMoodEmoji } from "@/components/mood-meter";
 
 type SortOption = "name-asc" | "name-desc" | "age-old" | "age-young";
 
@@ -16,6 +17,7 @@ type Member = {
     role?: string;
     is_active?: boolean | null;
     birth_date?: string | null;
+    current_mood?: string | null;
 };
 
 type MemberListProps = {
@@ -127,7 +129,7 @@ export function MemberList({ members, initialLimit = 8 }: MemberListProps) {
                         >
                             {/* Avatar */}
                             <div className={cn(
-                                "w-11 h-11 rounded-full overflow-hidden flex-shrink-0",
+                                "w-11 h-11 min-w-11 min-h-11 rounded-full overflow-hidden flex-shrink-0",
                                 isAdmin && "ring-2 ring-blue-200 ring-offset-1"
                             )}>
                                 <Image
@@ -142,7 +144,12 @@ export function MemberList({ members, initialLimit = 8 }: MemberListProps) {
 
                             {/* Info */}
                             <div className="flex-1 min-w-0">
-                                <p className="font-medium text-neutral-900 truncate">{member.name}</p>
+                                <p className="font-medium text-neutral-900 break-words flex items-center gap-1.5">
+                                    {member.name}
+                                    {member.current_mood && (
+                                        <span title={member.current_mood}>{getMoodEmoji(member.current_mood as any)}</span>
+                                    )}
+                                </p>
                                 <p className="text-xs text-neutral-500">
                                     {member.gender === "L" ? "Laki-laki" : member.gender === "P" ? "Perempuan" : "Member"}
                                 </p>

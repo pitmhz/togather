@@ -78,7 +78,7 @@ export function DashboardHero({
 
     if (!timeData) {
         return (
-            <div className="rounded-3xl p-6 bg-white border border-neutral-100 animate-pulse h-32" />
+            <div className="rounded-3xl p-6 bg-white border border-neutral-100 animate-pulse min-h-32" />
         );
     }
 
@@ -126,7 +126,7 @@ export function DashboardHero({
                         <p className="text-sm text-neutral-500">
                             {timeData.greeting} {timeData.emoji}
                         </p>
-                        <h1 className="text-xl font-bold text-neutral-900 truncate">
+                        <h1 className="text-xl font-bold text-neutral-900 break-words">
                             {firstName} 👋
                         </h1>
 
@@ -207,7 +207,7 @@ export function DashboardHero({
                                 <div key={idx} className="flex items-center">
                                     {/* Circle */}
                                     <div className={cn(
-                                        "w-12 h-12 rounded-full border-2 flex flex-col items-center justify-center flex-shrink-0",
+                                        "min-w-12 min-h-12 rounded-full border-2 flex flex-col items-center justify-center flex-shrink-0 p-1",
                                         STATUS_COLORS[record.status]
                                     )}>
                                         <span className="text-sm font-bold leading-none">

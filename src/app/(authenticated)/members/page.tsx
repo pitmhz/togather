@@ -96,6 +96,7 @@ export default async function MembersPage() {
       birth_date: member.birth_date,
       mbti: mbti || null,
       is_active: member.is_active ?? true,
+      current_mood: member.current_mood || null,
       attendanceDots,
     };
   });
@@ -118,9 +119,6 @@ export default async function MembersPage() {
 
               {/* Member List Section */}
               <section className="px-4">
-                <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">
-                  👥 Daftar Jemaat ({activeCount})
-                </h2>
                 <MemberList members={membersWithDots} />
               </section>
             </>

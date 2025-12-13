@@ -41,13 +41,17 @@ function getPageTitle(pathname: string): string {
     return "";
 }
 
-export function GlobalHeader() {
+interface GlobalHeaderProps {
+    communityName?: string | null;
+}
+
+export function GlobalHeader({ communityName }: GlobalHeaderProps) {
     const pathname = usePathname();
     const router = useRouter();
     const { scrollDirection, isScrolledTop, scrollY } = useScrollDirection({ threshold: 10 });
 
     // Don't render on auth pages
-    if (pathname === "/login" || pathname === "/signup" || pathname === "/") {
+    if (pathname === "/login" || pathname === "/signup" || pathname === "/" || pathname === "/onboarding") {
         return null;
     }
 
@@ -79,10 +83,15 @@ export function GlobalHeader() {
             )}
         >
             {/* Left Slot */}
-            <div className="w-10 flex items-center justify-start">
+            <div className="flex items-center gap-2">
                 {isDashboard ? (
-                    // Dashboard: Show brand icon
-                    <div className="text-xl">🤝</div>
+                    // Dashboard: Show Togather brand
+                    <>
+                        <span className="text-xl">🤝</span>
+                        <span className="font-bold text-neutral-900 tracking-tight">
+                            Togather
+                        </span>
+                    </>
                 ) : (
                     // Other pages: Show back button
                     <Button
@@ -96,19 +105,34 @@ export function GlobalHeader() {
                 )}
             </div>
 
-            {/* Center Slot - Page Title */}
+            {/* Center Slot - Page Title or Community Name */}
             <div className="flex-1 flex items-center justify-center">
                 <AnimatePresence mode="wait">
-                    <motion.h1
-                        key={pathname}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
-                        className="font-semibold text-neutral-900"
-                    >
-                        {pageTitle}
-                    </motion.h1>
+                    {isDashboard && communityName ? (
+                        <motion.div
+                            key="community"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                            className="flex items-center gap-1.5"
+                        >
+                            <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 text-xs font-medium rounded-full">
+                                {communityName}
+                            </span>
+                        </motion.div>
+                    ) : (
+                        <motion.h1
+                            key={pathname}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                            className="font-semibold text-neutral-900"
+                        >
+                            {pageTitle}
+                        </motion.h1>
+                    )}
                 </AnimatePresence>
             </div>
 
