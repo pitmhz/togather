@@ -159,24 +159,34 @@ export default function OnboardingWizardPage() {
             }),
         };
 
+        // DEBUG: Log form data before submission
+        console.log("CLIENT [Onboarding] Submitting Data:", JSON.stringify(data, null, 2));
+
         try {
             const result = await submitOnboarding(data);
 
             if ('error' in result && result.error) {
+                // DEBUG: Log error to browser console for DevTools visibility
+                console.error("CLIENT ERROR [Onboarding]:", result.error);
                 setError(result.error);
                 setIsSubmitting(false);
             } else if ('inviteCode' in result && result.inviteCode) {
+                console.log("CLIENT [Onboarding] Success! Invite code:", result.inviteCode);
                 setInviteCode(result.inviteCode);
                 if ('communityName' in result && result.communityName) {
                     setCommunityName(result.communityName);
                 }
                 setStep(4);
             } else if ('redirectTo' in result && result.redirectTo) {
+                console.log("CLIENT [Onboarding] Redirecting to:", result.redirectTo);
                 router.push(result.redirectTo);
             }
             // For leaders, redirect happens in the server action
         } catch (err) {
-            setError("Terjadi kesalahan. Silakan coba lagi.");
+            // DEBUG: Log caught exception to browser console
+            console.error("CLIENT ERROR [Onboarding] Caught exception:", err);
+            const errorMessage = err instanceof Error ? err.message : "Terjadi kesalahan. Silakan coba lagi.";
+            setError(errorMessage);
             setIsSubmitting(false);
         }
     };

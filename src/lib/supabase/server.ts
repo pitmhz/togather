@@ -9,6 +9,7 @@
  */
 
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 export async function createClient() {
@@ -46,3 +47,29 @@ export async function createClient() {
     }
   );
 }
+
+/**
+ * Admin Client - Bypasses RLS using Service Role Key
+ * 
+ * USE WITH CAUTION:
+ * - Only use for admin operations where RLS would block legitimate actions
+ * - Examples: onboarding registration, admin bulk operations
+ * - NEVER expose to client-side code
+ * - Always validate user identity via auth before using
+ */
+export function createAdminClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY environment variable");
+  }
+
+  return createSupabaseClient(supabaseUrl, supabaseServiceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
+

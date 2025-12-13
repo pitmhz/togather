@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { updateAttendance } from "../attendance-actions";
+import { getAvatarUrl } from "@/lib/utils";
 
 type Member = {
   id: string;
@@ -20,10 +21,7 @@ type SwipeCardsProps = {
   eventId: string;
 };
 
-function getAvatarUrl(name: string, avatarUrl: string | null): string {
-  if (avatarUrl) return avatarUrl;
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6366f1&color=fff&size=200&bold=true`;
-}
+
 
 export function SwipeCards({ members: initialMembers, eventId }: SwipeCardsProps) {
   const [members, setMembers] = useState(initialMembers);
@@ -136,7 +134,7 @@ export function SwipeCards({ members: initialMembers, eventId }: SwipeCardsProps
             <Card className="h-full bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 shadow-lg">
               <CardContent className="h-full flex flex-col items-center justify-center p-8">
                 {/* Avatar */}
-                <div className="w-32 h-32 rounded-full overflow-hidden mb-6 shadow-md">
+                <div className="w-32 h-32 rounded-full overflow-hidden mb-6 shadow-md bg-neutral-100">
                   <img
                     src={getAvatarUrl(currentMember.name, currentMember.avatar_url)}
                     alt={currentMember.name}

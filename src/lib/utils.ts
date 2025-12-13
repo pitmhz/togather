@@ -1,9 +1,109 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { ERROR_PATTERNS, DEFAULT_ERROR_MESSAGE, HUMAN_ERRORS } from "./constants/human-messages"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
+
+/**
+ * THE HUMAN TRANSLATOR
+ * 
+ * Converts technical error messages/objects to human-friendly Indonesian text.
+ * Scans error message for known patterns and returns appropriate friendly message.
+ * 
+ * @param error - Error object, string, or any value
+ * @returns Human-friendly error message string
+ * 
+ * USAGE IN ZOD SCHEMAS:
+ * ```ts
+ * import { HUMAN_ERRORS } from "@/lib/constants/human-messages";
+ * z.string().min(1, HUMAN_ERRORS.Validation.Required)
+ * z.string().email(HUMAN_ERRORS.Validation.InvalidEmail)
+ * ```
+ * 
+ * USAGE IN SERVER ACTIONS:
+ * ```ts
+ * catch (error) {
+ *   return { error: toHumanError(error) };
+ * }
+ * ```
+ * 
+ * USAGE IN CLIENT:
+ * ```ts
+ * if (result.error) {
+ *   toast.error(toHumanError(result.error));
+ * }
+ * ```
+ */
+export function toHumanError(error: unknown): string {
+  // Extract error message string
+  let errorString: string;
+
+  if (error === null || error === undefined) {
+    return DEFAULT_ERROR_MESSAGE;
+  }
+
+  if (typeof error === "string") {
+    errorString = error;
+  } else if (error instanceof Error) {
+    errorString = error.message;
+  } else if (typeof error === "object") {
+    // Handle Supabase/Postgres errors
+    const obj = error as Record<string, unknown>;
+    errorString = 
+      (obj.message as string) || 
+      (obj.error as string) || 
+      (obj.details as string) ||
+      (obj.hint as string) ||
+      JSON.stringify(error);
+  } else {
+    errorString = String(error);
+  }
+
+  // Scan for known patterns
+  for (const { pattern, message } of ERROR_PATTERNS) {
+    if (typeof pattern === "string") {
+      if (errorString.toLowerCase().includes(pattern.toLowerCase())) {
+        return message;
+      }
+    } else if (pattern.test(errorString)) {
+      return message;
+    }
+  }
+
+  // Check for HTTP status code patterns
+  if (/\b(500|502|503|504)\b/.test(errorString)) {
+    return HUMAN_ERRORS.System.ServerError;
+  }
+  if (/\b403\b/.test(errorString)) {
+    return HUMAN_ERRORS.Permission.Unauthorized;
+  }
+  if (/\b404\b/.test(errorString)) {
+    return HUMAN_ERRORS.Database.NotFound;
+  }
+
+  // If no pattern matched but it's already Indonesian/human-readable, return as-is
+  // (Heuristic: if it contains common Indonesian words and no JSON/code patterns)
+  const isAlreadyHuman = 
+    /^[A-Za-z\s.,!?]+$/.test(errorString) || // Simple text
+    /gagal|tidak|error|coba|silakan/i.test(errorString); // Common Indonesian words
+  
+  const isJSONOrCode = 
+    errorString.startsWith("{") || 
+    errorString.startsWith("[") ||
+    /[{}[\]:]/.test(errorString);
+
+  if (isAlreadyHuman && !isJSONOrCode && errorString.length < 200) {
+    return errorString;
+  }
+
+  // Fallback to default message
+  return DEFAULT_ERROR_MESSAGE;
+}
+
+// Re-export HUMAN_ERRORS for convenience
+export { HUMAN_ERRORS } from "./constants/human-messages";
 
 import { format, Locale } from "date-fns";
 import { id as idLocale, enUS, enAU } from "date-fns/locale";
@@ -118,17 +218,27 @@ export function maskData(text: string | null | undefined, type: 'email' | 'phone
 }
 
 /**
- * Generate a DiceBear avatar URL
- * Uses 'notionists' style for cute/cool avatars
+ * Generate a DiceBear avatar URL (Notionists style)
  * 
- * @param seed - Unique identifier (e.g., user name or email)
- * @param style - DiceBear style (default: 'notionists')
+ * The Notionists style creates cute, sketch-like avatars similar to Notion's default avatars.
+ * If a custom avatar URL is provided, it returns that instead.
+ * 
+ * @param nameOrSeed - User name or unique identifier for generating consistent avatar
+ * @param customAvatarUrl - Optional custom avatar URL (from database)
  * @returns Avatar URL string
  */
-export function getAvatarUrl(seed: string, style: 'notionists' | 'adventurer' | 'lorelei' = 'notionists'): string {
-  const encodedSeed = encodeURIComponent(seed || 'default');
-  const backgrounds = 'b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf';
-  return `https://api.dicebear.com/9.x/${style}/svg?seed=${encodedSeed}&backgroundColor=${backgrounds}`;
+export function getAvatarUrl(nameOrSeed: string, customAvatarUrl?: string | null): string {
+  // If custom avatar exists, use it
+  if (customAvatarUrl && customAvatarUrl.trim() !== '') {
+    return customAvatarUrl;
+  }
+  
+  // Generate DiceBear Notionist avatar
+  const seed = encodeURIComponent(nameOrSeed || 'default');
+  // Warm neutral backgrounds that make black-and-white sketches pop
+  const backgrounds = 'e8e8e8,f5f5f5,fafafa,f0ebe3,e8e4dd';
+  
+  return `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}&backgroundColor=${backgrounds}&backgroundType=solid`;
 }
 
 /**

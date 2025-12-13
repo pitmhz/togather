@@ -1,8 +1,7 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 export type OnboardingData = {
   role: "leader" | "member";
@@ -33,6 +32,7 @@ function generateInviteCode(communityName?: string): string {
 }
 
 export async function submitOnboarding(data: OnboardingData) {
+  // Use standard client just for auth check
   const supabase = await createClient();
 
   // Get current user
@@ -42,8 +42,15 @@ export async function submitOnboarding(data: OnboardingData) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
+    console.error("SERVER ERROR [submitOnboarding] Auth:", authError);
     return { error: "Tidak terautentikasi. Silakan login ulang." };
   }
+
+  // Use Admin Client for all DB operations (bypasses RLS)
+  const adminClient = createAdminClient();
+
+  console.log("SERVER [submitOnboarding] Starting for user:", user.id, "Role:", data.role);
+  console.log("SERVER [submitOnboarding] Data payload:", JSON.stringify(data, null, 2));
 
   try {
     if (data.role === "leader") {
@@ -51,7 +58,9 @@ export async function submitOnboarding(data: OnboardingData) {
       
       // 1. Create the community
       const inviteCode = generateInviteCode(data.communityName);
-      const { data: community, error: communityError } = await supabase
+      console.log("SERVER [submitOnboarding] Creating community with invite code:", inviteCode);
+
+      const { data: community, error: communityError } = await adminClient
         .from("communities")
         .insert({
           leader_id: user.id,
@@ -64,15 +73,17 @@ export async function submitOnboarding(data: OnboardingData) {
         .single();
 
       if (communityError) {
-        console.error("Error creating community:", communityError);
-        return { error: "Gagal membuat komunitas. Coba lagi." };
+        console.error("SERVER ERROR [submitOnboarding] Community creation failed:", JSON.stringify(communityError, null, 2));
+        return { error: `Gagal membuat komunitas: ${communityError.message}` };
       }
 
+      console.log("SERVER [submitOnboarding] Community created:", community.id);
+
       // 2. Update the user's profile
-      const { error: profileError } = await supabase
+      const { error: profileError } = await adminClient
         .from("profiles")
         .update({
-          name: data.fullName,
+          full_name: data.fullName,
           phone: data.phone,
           gender: data.gender,
           birth_date: data.birthDate,
@@ -83,10 +94,11 @@ export async function submitOnboarding(data: OnboardingData) {
         .eq("id", user.id);
 
       if (profileError) {
-        console.error("Error updating profile:", profileError);
-        return { error: "Gagal menyimpan profil. Coba lagi." };
+        console.error("SERVER ERROR [submitOnboarding] Profile update failed:", JSON.stringify(profileError, null, 2));
+        return { error: `Gagal menyimpan profil: ${profileError.message}` };
       }
 
+      console.log("SERVER [submitOnboarding] Profile updated successfully");
       revalidatePath("/");
       
       // Return success with invite code for Step 4 display
@@ -97,10 +109,12 @@ export async function submitOnboarding(data: OnboardingData) {
       };
     } else {
       // Member path: Just update profile, redirect to join screen
-      const { error: profileError } = await supabase
+      console.log("SERVER [submitOnboarding] Updating member profile");
+
+      const { error: profileError } = await adminClient
         .from("profiles")
         .update({
-          name: data.fullName,
+          full_name: data.fullName,
           phone: data.phone,
           gender: data.gender,
           birth_date: data.birthDate,
@@ -111,17 +125,19 @@ export async function submitOnboarding(data: OnboardingData) {
         .eq("id", user.id);
 
       if (profileError) {
-        console.error("Error updating profile:", profileError);
-        return { error: "Gagal menyimpan profil. Coba lagi." };
+        console.error("SERVER ERROR [submitOnboarding] Member profile update failed:", JSON.stringify(profileError, null, 2));
+        return { error: `Gagal menyimpan profil: ${profileError.message}` };
       }
 
+      console.log("SERVER [submitOnboarding] Member profile updated successfully");
       revalidatePath("/");
       // For members, redirect to join page (to be implemented)
       // For now, just return success
       return { success: true, redirectTo: "/join" };
     }
-  } catch (error) {
-    console.error("Onboarding error:", error);
-    return { error: "Terjadi kesalahan. Coba lagi." };
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown server error";
+    console.error("SERVER ERROR [submitOnboarding] Caught exception:", JSON.stringify(error, null, 2));
+    return { error: errorMessage };
   }
 }

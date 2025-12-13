@@ -69,13 +69,13 @@ function VersionCard({ entry, isLatest = false }: { entry: ChangelogEntry; isLat
     return (
         <div
             className={cn(
-                "p-3 rounded-xl border",
+                "p-5 rounded-xl border",
                 isLatest
                     ? "bg-purple-50/50 border-purple-100"
                     : "bg-neutral-50 border-neutral-100"
             )}
         >
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                     <span
                         className={cn(
@@ -97,10 +97,10 @@ function VersionCard({ entry, isLatest = false }: { entry: ChangelogEntry; isLat
                     {format(new Date(entry.date), "dd MMM yyyy", { locale: idLocale })}
                 </span>
             </div>
-            <h4 className="font-medium text-sm text-neutral-800 mb-1.5">{entry.title}</h4>
-            <ul className="space-y-1">
+            <h4 className="font-medium text-sm text-neutral-800 mb-2">{entry.title}</h4>
+            <ul className="space-y-1.5">
                 {entry.changes.map((change, idx) => (
-                    <li key={idx} className="text-xs text-neutral-600 flex items-start gap-1.5">
+                    <li key={idx} className="text-xs text-neutral-600 flex items-start gap-2">
                         <span className="text-neutral-300">•</span>
                         {change}
                     </li>

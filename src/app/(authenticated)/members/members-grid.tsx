@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowUpDown, Crown } from "lucide-react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowUpDown, Crown, User, MessageCircle, Power } from "lucide-react";
+import { toast } from "sonner";
 
-import { MemberDetailDrawer } from "./member-detail-drawer";
-import { getLifeStage, formatDate } from "@/lib/utils";
+import { deactivateMember } from "./actions";
+import { getLifeStage, formatDate, getAvatarUrl } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -13,6 +15,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 type MemberWithDots = {
   id: string;
@@ -21,12 +29,12 @@ type MemberWithDots = {
   email?: string | null;
   attendanceDots: ("present" | "absent")[];
   avatar_url?: string | null;
-  status?: "available" | "unavailable";
+  status?: "active" | "inactive" | "unavailable" | null;
   unavailable_reason?: string | null;
   unavailable_until?: string | null;
   gender?: "L" | "P" | null;
-  role?: "admin" | "member" | "owner"; // Added role
-  birth_date?: string | null; // Added birth_date
+  role?: "admin" | "member" | "owner";
+  birth_date?: string | null;
   is_active?: boolean;
 };
 
@@ -38,32 +46,72 @@ type MembersGridProps = {
   localeCode: string;
 };
 
-function getAvatarUrl(name: string, avatarUrl?: string | null): string {
-  if (avatarUrl) return avatarUrl;
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6366f1&color=fff&size=80&bold=true`;
-}
+
 
 function AttendanceRate({ dots }: { dots: ("present" | "absent")[] }) {
   if (!dots || dots.length === 0) return null;
-  const present = dots.filter(d => d === "present").length;
   return (
     <div className="flex gap-0.5">
       {dots.slice(0, 5).map((status, i) => (
         <span
           key={i}
-          className={`w-1.5 h-1.5 rounded-full ${
-            status === "present" ? "bg-emerald-500" : "bg-red-400"
-          }`}
+          className={`w-1.5 h-1.5 rounded-full ${status === "present" ? "bg-emerald-500" : "bg-red-400"
+            }`}
         />
       ))}
     </div>
   );
 }
 
+function formatPhoneForWhatsApp(phone: string | null): string | null {
+  if (!phone) return null;
+  let cleaned = phone.replace(/\D/g, "");
+  if (cleaned.startsWith("0")) {
+    cleaned = "62" + cleaned.slice(1);
+  }
+  if (!cleaned.startsWith("62")) {
+    cleaned = "62" + cleaned;
+  }
+  return cleaned;
+}
+
+// Reusable Quick Action Item Component (iOS Settings List Style)
+function QuickActionItem({
+  icon: Icon,
+  label,
+  onClick,
+  variant = "ghost",
+  disabled = false,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  onClick: () => void;
+  variant?: "ghost" | "destructive";
+  disabled?: boolean;
+}) {
+  const baseStyles =
+    "flex items-center gap-3 w-full px-3 py-3 text-sm font-medium rounded-lg transition-colors text-left";
+  const variantStyles = {
+    ghost: "text-[#37352F] hover:bg-neutral-100",
+    destructive: "text-red-600 hover:bg-red-50",
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`${baseStyles} ${variantStyles[variant]} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+    >
+      <Icon className="w-5 h-5 flex-shrink-0" />
+      <span>{label}</span>
+    </button>
+  );
+}
+
 export function MembersGrid({ members: initialMembers, isAdmin, localeCode }: MembersGridProps) {
+  const router = useRouter();
   const [sortBy, setSortBy] = useState<SortOption>("name-asc");
-  const [selectedMember, setSelectedMember] = useState<MemberWithDots | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   // Filter to show only active members by default
   const activeMembers = initialMembers.filter(m => m.is_active !== false);
@@ -89,9 +137,31 @@ export function MembersGrid({ members: initialMembers, isAdmin, localeCode }: Me
     }
   });
 
-  const handleMemberClick = (member: MemberWithDots) => {
-    setSelectedMember(member);
-    setDrawerOpen(true);
+  const handleViewProfile = (memberId: string) => {
+    router.push(`/members/${memberId}`);
+  };
+
+  const handleWhatsApp = (member: MemberWithDots) => {
+    const whatsappNumber = formatPhoneForWhatsApp(member.phone);
+    if (whatsappNumber) {
+      const url = `https://wa.me/${whatsappNumber}?text=Halo%20${encodeURIComponent(member.name)}%2C%20`;
+      window.open(url, "_blank");
+    } else {
+      toast.error("Nomor WhatsApp tidak tersedia");
+    }
+  };
+
+  const handleDeactivate = (member: MemberWithDots) => {
+    if (!confirm(`Nonaktifkan ${member.name}? Member tidak akan muncul di daftar.`)) return;
+
+    startTransition(async () => {
+      const result = await deactivateMember(member.id);
+      if (result?.success) {
+        toast.success(result.message + " 🚫");
+      } else {
+        toast.error(result?.message || "Gagal menonaktifkan member. ❌");
+      }
+    });
   };
 
   return (
@@ -115,86 +185,117 @@ export function MembersGrid({ members: initialMembers, isAdmin, localeCode }: Me
         </Select>
       </div>
 
-      {/* Grid Layout - Simplified Cards */}
-      <div className="grid grid-cols-2 gap-2">
+      {/* Accordion List */}
+      <Accordion type="single" collapsible className="space-y-2">
         {sortedMembers.map((member) => {
           const avatarUrl = getAvatarUrl(member.name, member.avatar_url);
           return (
-            <button
+            <AccordionItem
               key={member.id}
-              onClick={() => handleMemberClick(member)}
-              className={`
-                flex items-center gap-2 p-2.5 bg-white border border-[#E3E3E3] rounded-md
-                hover:bg-[#F7F7F5] transition-colors text-left
-                ${member.is_active === false ? "opacity-50 grayscale" : ""}
-              `}
+              value={member.id}
+              className="border border-[#E3E3E3] rounded-xl overflow-hidden bg-white data-[state=open]:shadow-sm"
             >
-              {/* Avatar */}
-              <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
-                <img
-                  src={avatarUrl}
-                  alt={member.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              {/* Name + Attendance */}
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-start">
-                  <p className="font-medium text-[#37352F] truncate text-sm">
-                    {member.name}
-                  </p>
+              <AccordionTrigger
+                className={`
+                  flex items-center gap-3 p-3 w-full text-left
+                  hover:bg-neutral-50 transition-colors
+                  [&>svg]:ml-auto [&>svg]:text-neutral-400
+                  hover:no-underline
+                  ${member.is_active === false ? "opacity-50 grayscale" : ""}
+                `}
+              >
+                {/* Avatar */}
+                <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                  <img
+                    src={avatarUrl}
+                    alt={member.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                {member.birth_date && (
-                  <p className="text-[10px] text-muted-foreground mb-1">
-                    {formatDate(member.birth_date, "dd MMMM yyyy", localeCode)}
-                  </p>
-                )}
-                <AttendanceRate dots={member.attendanceDots} />
-                
-                {/* Meta Badges */}
-                <div className="flex flex-wrap gap-1 mt-1.5">
-                   {/* Leader Badge */}
-                   {(member.role === 'admin' || member.role === 'owner') && (
-                    <Badge className="text-[10px] px-1.5 py-0 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border-0 gap-1 pl-1">
-                      <Crown className="w-3 h-3" />
-                      Leader
-                    </Badge>
+
+                {/* Name + Meta */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-[#37352F] truncate text-sm">
+                      {member.name}
+                    </p>
+                    {(member.role === 'admin' || member.role === 'owner') && (
+                      <Crown className="w-3.5 h-3.5 text-orange-500 fill-orange-500 flex-shrink-0" />
+                    )}
+                  </div>
+
+                  {member.birth_date && (
+                    <p className="text-[10px] text-muted-foreground mb-1">
+                      {formatDate(member.birth_date, "dd MMMM yyyy", localeCode)}
+                    </p>
                   )}
 
-                  {/* Life Stage Badge */}
-                  {(() => {
-                    const stage = getLifeStage(member.birth_date);
-                    if (!stage) return null;
-                    return (
-                      <Badge 
-                        variant="secondary"
-                        className={`text-[10px] px-1.5 py-0 shadow-none ${stage.color}`}
-                      >
-                        {stage.label}
-                      </Badge>
-                    );
-                  })()}
+                  <div className="flex items-center gap-2">
+                    <AttendanceRate dots={member.attendanceDots} />
+
+                    {/* Life Stage Badge */}
+                    {(() => {
+                      const stage = getLifeStage(member.birth_date);
+                      if (!stage) return null;
+                      return (
+                        <Badge
+                          variant="secondary"
+                          className={`text-[10px] px-1.5 py-0 shadow-none ${stage.color}`}
+                        >
+                          {stage.label}
+                        </Badge>
+                      );
+                    })()}
+                  </div>
                 </div>
-              </div>
-              {/* Inactive Badge */}
-              {member.is_active === false && (
-                <Badge className="text-[10px] px-1 py-0 bg-[#E3E3E3] text-[#787774]">
-                  Off
-                </Badge>
-              )}
-            </button>
+
+                {/* Inactive Badge */}
+                {member.is_active === false && (
+                  <Badge className="text-[10px] px-1 py-0 bg-[#E3E3E3] text-[#787774]">
+                    Off
+                  </Badge>
+                )}
+                {/* Unavailable Badge */}
+                {member.status === "unavailable" && member.is_active !== false && (
+                  <Badge className="text-[10px] px-1.5 py-0 bg-amber-100 text-amber-700 border-0">
+                    ⚠️ {member.unavailable_reason || "Away"}
+                  </Badge>
+                )}
+              </AccordionTrigger>
+
+              {/* Quick Actions Content */}
+              <AccordionContent className="pb-0">
+                <div className="p-2 bg-neutral-50/50 border-t border-[#E3E3E3]">
+                  <QuickActionItem
+                    icon={User}
+                    label="Lihat Profil Lengkap"
+                    onClick={() => handleViewProfile(member.id)}
+                    variant="ghost"
+                  />
+
+                  <QuickActionItem
+                    icon={MessageCircle}
+                    label="Hubungi Cepat (WhatsApp)"
+                    onClick={() => handleWhatsApp(member)}
+                    variant="ghost"
+                    disabled={!member.phone}
+                  />
+
+                  {isAdmin && (
+                    <QuickActionItem
+                      icon={Power}
+                      label="Nonaktifkan Jemaat"
+                      onClick={() => handleDeactivate(member)}
+                      variant="destructive"
+                      disabled={isPending || member.is_active === false}
+                    />
+                  )}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
           );
         })}
-      </div>
-
-      {/* Member Detail Drawer */}
-      <MemberDetailDrawer
-        member={selectedMember}
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
-        avatarUrl={selectedMember ? getAvatarUrl(selectedMember.name, selectedMember.avatar_url) : undefined}
-        isAdmin={isAdmin}
-      />
+      </Accordion>
     </div>
   );
 }

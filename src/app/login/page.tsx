@@ -10,10 +10,11 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { login, signInAsDev, type LoginState } from "./actions";
-import { redeemInviteCode } from "@/app/actions/demo";
+import { redeemInviteCode, devQuickLogin } from "@/app/actions/demo";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -285,6 +286,9 @@ export default function LoginPage() {
           </Link>
           .
         </p>
+
+        {/* Phantom Dev Mode - Hidden in plain sight */}
+        <PhantomDevMode />
       </div>
     </main>
   );
@@ -326,5 +330,75 @@ function DevLoginButtons() {
         {isPending2 ? "..." : "Member"}
       </Button>
     </div>
+  );
+}
+
+/**
+ * Phantom Dev Mode - Hidden in plain sight
+ * Very low opacity trigger that expands to show quick login shortcuts.
+ * Only developers who know about it will find it.
+ */
+function PhantomDevMode() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState<"leader" | "member" | null>(null);
+
+  const handleQuickLogin = async (role: "leader" | "member") => {
+    setIsLoading(role);
+    try {
+      const code = role === "leader" ? "DEV-LEADER" : "DEV-MEMBER";
+      const result = await devQuickLogin(code);
+
+      if (result.success) {
+        toast.success(result.message);
+        if (result.redirectTo) {
+          router.push(result.redirectTo);
+        }
+      } else {
+        toast.error(result.message);
+      }
+    } catch (err) {
+      toast.error("Quick login failed");
+    } finally {
+      setIsLoading(null);
+    }
+  };
+
+  return (
+    <Collapsible>
+      <div className="flex justify-center mt-8">
+        <CollapsibleTrigger className="text-[10px] text-black/10 hover:text-black/50 transition-all font-mono cursor-pointer select-none">
+          DEV MODE
+        </CollapsibleTrigger>
+      </div>
+
+      <CollapsibleContent>
+        <div className="grid grid-cols-2 gap-3 mt-4 p-4 bg-red-50/50 border border-red-100 rounded-xl max-w-xs mx-auto">
+          <Button
+            variant="outline"
+            className="h-10 text-xs border-red-200 text-red-700 hover:bg-red-100"
+            onClick={() => handleQuickLogin("leader")}
+            disabled={isLoading !== null}
+          >
+            {isLoading === "leader" ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              "👮‍♂️ Leader"
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            className="h-10 text-xs border-blue-200 text-blue-700 hover:bg-blue-100"
+            onClick={() => handleQuickLogin("member")}
+            disabled={isLoading !== null}
+          >
+            {isLoading === "member" ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              "👤 Member"
+            )}
+          </Button>
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

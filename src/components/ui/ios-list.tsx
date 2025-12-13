@@ -8,10 +8,10 @@ import { cn } from "@/lib/utils";
  * IOSListGroup - A container for grouped list items (like iOS Settings sections)
  * Creates the rounded white box on gray background look.
  */
-function IOSListGroup({ 
-  className, 
+function IOSListGroup({
+  className,
   children,
-  ...props 
+  ...props
 }: React.ComponentProps<"div">) {
   return (
     <div
@@ -30,10 +30,10 @@ function IOSListGroup({
 /**
  * IOSListHeader - A section header above a group
  */
-function IOSListHeader({ 
-  className, 
+function IOSListHeader({
+  className,
   children,
-  ...props 
+  ...props
 }: React.ComponentProps<"p">) {
   return (
     <p
@@ -79,13 +79,13 @@ function IOSListItem({
   children,
 }: IOSListItemProps) {
   const Wrapper = onClick ? "button" : "div";
-  
+
   return (
     <Wrapper
       data-slot="ios-list-item"
       onClick={onClick}
       className={cn(
-        "w-full flex items-center px-4 py-3.5 text-left",
+        "w-full flex items-center px-5 py-4 text-left",
         onClick && "cursor-pointer active:bg-neutral-50 transition-colors",
         className
       )}
@@ -97,7 +97,7 @@ function IOSListItem({
             {icon}
           </div>
         )}
-        <span 
+        <span
           className={cn(
             "font-medium truncate",
             icon ? "ml-3" : "",
@@ -132,11 +132,11 @@ function IOSListItem({
  */
 function IOSListSeparator({ className }: { className?: string }) {
   return (
-    <div 
+    <div
       className={cn(
         "h-px bg-neutral-100 ml-12", // Inset from left (icon width + padding)
         className
-      )} 
+      )}
     />
   );
 }

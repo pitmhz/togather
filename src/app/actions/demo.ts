@@ -391,3 +391,135 @@ export async function checkDemoQuota(action: "create_event" | "add_member" | "ed
 
   return { allowed: true };
 }
+
+/**
+ * Dev Quick Login - Phantom Dev Mode Handler
+ * 
+ * Handles special DEV-LEADER and DEV-MEMBER codes for instant demo account creation.
+ * Creates a fully populated sandbox without requiring an existing invite code in DB.
+ */
+export async function devQuickLogin(code: string): Promise<RedeemResult> {
+  // Only allow specific hardcoded dev codes
+  const validCodes = ["DEV-LEADER", "DEV-MEMBER"];
+  const normalizedCode = code.toUpperCase().trim();
+  
+  if (!validCodes.includes(normalizedCode)) {
+    return { success: false, message: "Invalid dev code." };
+  }
+
+  const isLeader = normalizedCode === "DEV-LEADER";
+  
+  try {
+    console.log(`[devQuickLogin] Starting ${isLeader ? "Leader" : "Member"} quick login...`);
+
+    // Generate demo credentials
+    const demoId = generateShortId();
+    const demoEmail = `dev-${isLeader ? "leader" : "member"}-${demoId.toLowerCase()}@togather.dev`;
+    const demoPassword = `DevPass${generateShortId()}${generateShortId()}!`;
+
+    // Create auth user using ADMIN client
+    const adminClient = createAdminClient();
+    const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
+      email: demoEmail,
+      password: demoPassword,
+      email_confirm: true,
+    });
+
+    if (authError || !authData.user) {
+      console.error("[devQuickLogin] Auth error:", authError);
+      return { success: false, message: "Gagal membuat akun dev." };
+    }
+
+    const userId = authData.user.id;
+    console.log("[devQuickLogin] User created:", userId);
+
+    // Create profile
+    const { error: profileError } = await adminClient
+      .from("profiles")
+      .upsert({
+        id: userId,
+        full_name: isLeader ? `Dev Leader ${demoId}` : `Dev Member ${demoId}`,
+        is_demo: true,
+        mbti: randomItem(MBTI_TYPES),
+        is_onboarded: true, // Skip onboarding for dev accounts
+      });
+
+    if (profileError) {
+      console.error("[devQuickLogin] Profile error:", profileError);
+      return { success: false, message: "Gagal membuat profil dev." };
+    }
+
+    // Create community/group
+    const groupName = isLeader ? `Dev Leader CG ${demoId}` : `Dev Member CG ${demoId}`;
+    const { data: group, error: groupError } = await adminClient
+      .from("groups")
+      .insert({
+        name: groupName,
+        community_name: "Togather Dev",
+        owner_id: userId,
+      })
+      .select()
+      .single();
+
+    if (groupError || !group) {
+      console.error("[devQuickLogin] Group error:", groupError);
+      return { success: false, message: "Gagal membuat komunitas dev." };
+    }
+
+    const groupId = group.id;
+
+    // Generate demo members (fewer for quick login)
+    const shortMemberList = DEMO_NAMES.slice(0, 8);
+    const memberInserts = shortMemberList.map((name, idx) => ({
+      group_id: groupId,
+      user_id: idx === 0 ? userId : null,
+      name,
+      role: idx === 0 ? (isLeader ? "owner" : "member") : (idx < 2 ? "admin" : "member"),
+      gender: Math.random() > 0.5 ? "L" : "P",
+      birth_date: idx < 3 ? randomUpcomingBirthday() : randomDate(1985, 2005),
+      current_mood: randomItem(MOOD_OPTIONS),
+      is_active: true,
+      phone: `08${Math.floor(1000000000 + Math.random() * 9000000000)}`.slice(0, 12),
+    }));
+
+    const { data: members, error: membersError } = await adminClient
+      .from("members")
+      .insert(memberInserts)
+      .select("id, name");
+
+    if (membersError) {
+      console.error("[devQuickLogin] Members error:", membersError);
+      // Continue anyway, not critical
+    }
+
+    console.log("[devQuickLogin] Members created:", members?.length || 0);
+
+    // Sign in the user - use regular client for session cookies
+    const supabase = await createClient();
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: demoEmail,
+      password: demoPassword,
+    });
+
+    if (signInError) {
+      console.error("[devQuickLogin] Sign in error:", signInError);
+      return { success: false, message: "Akun dibuat tapi gagal login otomatis." };
+    }
+
+    revalidatePath("/dashboard");
+    
+    console.log(`[devQuickLogin] ✅ ${isLeader ? "Leader" : "Member"} login successful!`);
+    return {
+      success: true,
+      message: `Dev ${isLeader ? "Leader" : "Member"} mode activated! 🚀`,
+      redirectTo: "/dashboard",
+    };
+
+  } catch (error) {
+    console.error("[devQuickLogin] Exception:", error);
+    return {
+      success: false,
+      message: "System error during dev login.",
+    };
+  }
+}

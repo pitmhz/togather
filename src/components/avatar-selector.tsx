@@ -5,31 +5,41 @@ import { Camera, Shuffle } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
+import { getAvatarUrl } from "@/lib/utils";
 
 type AvatarSelectorProps = {
   currentSeed?: string;
+  userName?: string;
   onSeedChange: (seed: string, url: string) => void;
   size?: "sm" | "md" | "lg";
   showHeader?: boolean;
+  showPresets?: boolean;
 };
 
 function generateRandomSeed(): string {
   return Math.random().toString(36).substring(2, 15);
 }
 
-function getAvatarUrl(seed: string): string {
-  return `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}&backgroundColor=transparent`;
-}
+// Preset seeds for avatar options
+const PRESET_SEEDS = [
+  "avatar_1", "avatar_2", "avatar_3",
+  "avatar_4", "avatar_5", "avatar_6",
+  "avatar_7", "avatar_8", "avatar_9",
+];
 
 export function AvatarSelector({
   currentSeed,
+  userName = "",
   onSeedChange,
   size = "md",
-  showHeader = true
+  showHeader = true,
+  showPresets = true,
 }: AvatarSelectorProps) {
-  const [seed, setSeed] = useState(currentSeed || generateRandomSeed());
+  const [seed, setSeed] = useState(currentSeed || userName || generateRandomSeed());
 
-  const avatarUrl = getAvatarUrl(seed);
+  // Use userName as seed if provided, otherwise use random seed
+  const effectiveSeed = userName || seed;
+  const avatarUrl = getAvatarUrl(effectiveSeed);
 
   const sizeClasses = {
     sm: "w-16 h-16",
@@ -43,25 +53,30 @@ export function AvatarSelector({
     onSeedChange(newSeed, getAvatarUrl(newSeed));
   };
 
+  const handlePresetClick = (presetSeed: string) => {
+    setSeed(presetSeed);
+    onSeedChange(presetSeed, getAvatarUrl(presetSeed));
+  };
+
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-5">
       {/* Header */}
       {showHeader && (
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-foreground">Your Profile</h2>
-          <p className="text-sm text-muted-foreground">Introduce yourself to others</p>
+          <h2 className="text-xl font-semibold text-foreground">Pilih Avatar</h2>
+          <p className="text-sm text-muted-foreground">Tap untuk acak atau pilih dari preset</p>
         </div>
       )}
 
-      {/* Avatar with Gradient + Camera Badge */}
+      {/* Main Avatar with Gradient + Camera Badge */}
       <motion.div
         className="relative cursor-pointer group"
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={handleShuffle}
       >
-        {/* Gradient Background Circle */}
-        <div className={`${sizeClasses[size]} rounded-full bg-gradient-to-tr from-purple-100 to-blue-100 flex items-center justify-center shadow-sm overflow-hidden`}>
+        {/* Soft Background Circle */}
+        <div className={`${sizeClasses[size]} rounded-full bg-neutral-100 flex items-center justify-center shadow-sm overflow-hidden ring-4 ring-neutral-50`}>
           <img
             src={avatarUrl}
             alt="Avatar preview"
@@ -74,6 +89,29 @@ export function AvatarSelector({
           <Camera className="w-4 h-4 text-white" />
         </div>
       </motion.div>
+
+      {/* Preset Grid */}
+      {showPresets && (
+        <div className="grid grid-cols-3 gap-3">
+          {PRESET_SEEDS.map((presetSeed) => (
+            <motion.button
+              key={presetSeed}
+              type="button"
+              onClick={() => handlePresetClick(presetSeed)}
+              className={`w-14 h-14 rounded-full overflow-hidden bg-neutral-100 transition-all ${seed === presetSeed ? "ring-2 ring-black ring-offset-2" : "hover:ring-2 hover:ring-neutral-300"
+                }`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <img
+                src={getAvatarUrl(presetSeed)}
+                alt={`Preset ${presetSeed}`}
+                className="w-full h-full object-cover"
+              />
+            </motion.button>
+          ))}
+        </div>
+      )}
 
       {/* Shuffle Button */}
       <Button
@@ -90,5 +128,6 @@ export function AvatarSelector({
   );
 }
 
-// Export helper for getting URL from seed
-export { getAvatarUrl, generateRandomSeed };
+// Export helper for getting URL from seed (uses utils version)
+export { generateRandomSeed };
+export { getAvatarUrl } from "@/lib/utils";

@@ -218,7 +218,7 @@ export async function deactivateMember(memberId: string): Promise<ActionState> {
 
 export async function updateMemberStatus(
   memberId: string,
-  status: "available" | "unavailable",
+  status: "active" | "inactive" | "unavailable",
   reason?: string | null,
   untilDate?: string | null
 ): Promise<ActionState> {
@@ -235,27 +235,26 @@ export async function updateMemberStatus(
     };
   }
 
-  // Verify ownership
-  const { data: member } = await supabase
-    .from("members")
-    .select("user_id")
-    .eq("id", memberId)
-    .single();
+  // Build update payload based on status
+  const updatePayload: Record<string, any> = {
+    status,
+    is_active: status !== "inactive",
+  };
 
-  if (!member || member.user_id !== user.id) {
-    return {
-      success: false,
-      message: "Kamu tidak punya akses untuk mengubah status jemaat ini.",
-    };
+  if (status === "unavailable") {
+    updatePayload.unavailable_reason = reason || null;
+    updatePayload.unavailable_until = untilDate || null;
+  } else if (status === "active") {
+    updatePayload.unavailable_reason = null;
+    updatePayload.unavailable_until = null;
+  } else if (status === "inactive") {
+    updatePayload.unavailable_reason = reason || null;
+    updatePayload.unavailable_until = null;
   }
 
   const { error } = await supabase
     .from("members")
-    .update({
-      status,
-      unavailable_reason: status === "unavailable" ? reason : null,
-      unavailable_until: status === "unavailable" ? untilDate : null,
-    })
+    .update(updatePayload)
     .eq("id", memberId);
 
   if (error) {
@@ -267,13 +266,18 @@ export async function updateMemberStatus(
   }
 
   revalidatePath("/members");
+  revalidatePath(`/members/${memberId}`);
   revalidatePath("/events");
+
+  const messages: Record<string, string> = {
+    active: "Status berhasil diubah ke Aktif!",
+    unavailable: "Status berhasil diubah ke Tidak Tersedia.",
+    inactive: "Member berhasil dinonaktifkan.",
+  };
 
   return {
     success: true,
-    message: status === "available" 
-      ? "Status berhasil diubah ke Tersedia!" 
-      : "Status berhasil diubah ke Tidak Tersedia.",
+    message: messages[status],
   };
 }
 

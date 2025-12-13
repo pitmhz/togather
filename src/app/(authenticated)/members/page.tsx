@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 
 import { AddMemberDialog } from "./add-member-dialog";
 import { BirthdaySpotlight } from "@/components/birthday-spotlight";
-import { MemberList } from "@/components/member-list";
+import { MembersGrid } from "./members-grid";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { BackgroundPattern } from "@/components/ui/background-pattern";
@@ -142,7 +142,7 @@ export default async function MembersPage() {
 
               {/* Member List Section */}
               <section className={cn("px-4", getUpcomingBirthdays(membersWithDots, 5).length === 0 && "pt-3")}>
-                <MemberList members={membersWithDots} />
+                <MembersGrid members={membersWithDots} isAdmin={isAdmin} localeCode="id" />
               </section>
             </>
           ) : (

@@ -10,12 +10,26 @@ Major overhaul of the first-time user experience with Luma-style authentication 
 - **Merged Invite Flow**: Invite code entry now integrated into Login Screen (Luma Bottom Sheet style).
 - **Strict Middleware Redirects**: Session check runs first → then onboarding status check. No more accidental skips.
 - **Human-Friendly Errors**: New error pages with randomized metaphors (Cafe, Kitchen, etc.) for a softer experience.
+- **Phantom Dev Mode**: Restored 7x tap on logo to reveal dev login shortcuts.
 
 ### 🚀 Onboarding 2.0
 - **Stacked & Expandable Role Cards**: New "Leader vs Member" selection with detailed benefits breakdown.
 - **Luma Design Tokens**: Soft bubble inputs, pill buttons, squircle avatars.
 - **Avatar Selector**: Interactive avatar picker with preset options.
 - **Safety Friction Modal**: Confirmation dialog for Member joining to prevent accidental clicks.
+
+### 👥 Member Experience Overhaul
+- **Profile Unification**: Reused Dashboard Hero Card (MemberPassCard) for Member Detail pages - consistent visual identity.
+- **Member List 2.0**: Expandable Accordion cards with Quick Actions (View Profile, WhatsApp, Deactivate).
+- **Lifecycle Management**: Added "Danger Zone" to handle Unavailable (temporary) and Inactive (permanent) member states.
+- **Status Tracking**: Members can be set as "Tidak Tersedia" with reason and date, or "Nonaktif" permanently.
+- **Visual Status Indicators**: Grayscale + badges for inactive members, amber badges for unavailable members.
+
+### 🎨 Visuals & UX Delight
+- **Notion-Style Avatars**: Restored DiceBear "Notionists" collection as default with warm neutral backgrounds.
+- **Playful MBTI Fallback**: Added randomized Gen-Z humor quotes for empty MBTI states (e.g., "Belum nyetel MBTI nih, rada mager 😴").
+- **Inline WhatsApp Button**: Moved WhatsApp CTA from standalone to inline with phone number in Contact card.
+- **MBTI Card Polish**: Removed white gap between card border and colored header.
 
 ### 🛠️ Dev Tools
 - **God Mode Trigger**: 7x tap on profile avatar reveals admin override panel.

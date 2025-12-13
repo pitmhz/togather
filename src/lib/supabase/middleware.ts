@@ -63,7 +63,7 @@ export async function updateSession(request: NextRequest) {
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
 
   // Public routes (accessible without authentication)
-  const publicRoutes = ["/login", "/auth/callback", "/error", "/intro", "/privacy"];
+  const publicRoutes = ["/login", "/auth/callback", "/auth/logout", "/error", "/intro", "/privacy"];
   const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
 
   // Onboarding route (requires authentication, but NOT completed onboarding)
