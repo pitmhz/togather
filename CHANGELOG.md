@@ -2,6 +2,32 @@
 
 All notable changes to Togather are documented in this file.
 
+## [1.3.0-beta] - 2025-12-14 - The "First Impression" Update 🎯
+
+Major overhaul of the first-time user experience with Luma-style authentication and onboarding.
+
+### 🔐 Auth Overhaul
+- **Merged Invite Flow**: Invite code entry now integrated into Login Screen (Luma Bottom Sheet style).
+- **Strict Middleware Redirects**: Session check runs first → then onboarding status check. No more accidental skips.
+- **Human-Friendly Errors**: New error pages with randomized metaphors (Cafe, Kitchen, etc.) for a softer experience.
+
+### 🚀 Onboarding 2.0
+- **Stacked & Expandable Role Cards**: New "Leader vs Member" selection with detailed benefits breakdown.
+- **Luma Design Tokens**: Soft bubble inputs, pill buttons, squircle avatars.
+- **Avatar Selector**: Interactive avatar picker with preset options.
+- **Safety Friction Modal**: Confirmation dialog for Member joining to prevent accidental clicks.
+
+### 🛠️ Dev Tools
+- **God Mode Trigger**: 7x tap on profile avatar reveals admin override panel.
+- **Admin Role Toggle**: Quick switch between admin/member roles for testing.
+
+### 🎨 Visuals
+- **iOS-Style Bottom Sheets**: Smooth drawer animations for all modals.
+- **Expandable Cards**: Framer Motion powered accordion effects.
+- **Refined Typography**: Consistent heading hierarchy across onboarding steps.
+
+---
+
 ## [1.2.0-beta] - 2025-12-14 - The Luma Update 🌗
 
 We have completed a massive 10-hour sprint involving a Major Visual Overhaul and Architecture Shift.

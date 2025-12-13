@@ -8,20 +8,20 @@ import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-semibold transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-semibold transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 active:scale-95",
   {
     variants: {
       variant: {
-        default: "bg-black text-white hover:bg-neutral-800 shadow-sm",
+        default: "bg-black text-white hover:bg-gray-800 shadow-sm",
         destructive:
           "bg-red-100 text-red-600 hover:bg-red-200 focus-visible:ring-red-500/20",
         outline:
-          "border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-900",
+          "border border-input bg-background hover:bg-accent text-accent-foreground",
         secondary:
-          "bg-neutral-100 text-neutral-900 hover:bg-neutral-200",
+          "bg-gray-100 text-black hover:bg-gray-200",
         ghost:
-          "hover:bg-neutral-100 text-neutral-600 hover:text-neutral-900",
-        link: "text-neutral-900 underline-offset-4 hover:underline",
+          "hover:bg-accent text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
         default: "min-h-12 px-6 py-3",

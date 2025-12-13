@@ -44,48 +44,66 @@
 }
 
 /* LUMA iOS-Style Light Theme */
+/* LUMA Vibe Design System */
 :root {
-  /* Base radius: 1rem (16px) for cards */
-  --radius: 1rem;
-  /* Light Gray Page Background - White cards pop out */
-  --background: #F3F4F6;
-  /* Deep Charcoal text */
-  --foreground: #1F2937;
-  /* Pure White surfaces */
+  /* Shapes: card_radius = 32px (2rem) */
+  --radius: 2rem;
+
+  /* Colors */
+  /* background: #FFFFFF */
+  --background: #FFFFFF;
+  /* text_primary: #111111 */
+  --foreground: #111111;
+
+  /* surface_primary: #FFFFFF */
   --card: #FFFFFF;
-  --card-foreground: #1F2937;
+  --card-foreground: #111111;
   --popover: #FFFFFF;
-  --popover-foreground: #1F2937;
-  /* Primary: Pure Black buttons */
+  --popover-foreground: #111111;
+
+  /* accent_primary: #000000 */
   --primary: #000000;
   --primary-foreground: #FFFFFF;
-  /* Secondary: Light Gray buttons */
-  --secondary: #F3F4F6;
-  --secondary-foreground: #1F2937;
-  /* Muted: Soft grays */
-  --muted: #F3F4F6;
-  --muted-foreground: #6B7280;
-  --accent: #F3F4F6;
-  --accent-foreground: #1F2937;
-  --destructive: #EF4444;
-  /* Borders: Very subtle */
-  --border: #E5E7EB;
+
+  /* accent_secondary: #E5E5E5 */
+  --secondary: #E5E5E5;
+  --secondary-foreground: #111111;
+
+  /* surface_secondary: #F7F7F7 */
+  --muted: #F7F7F7;
+  /* text_secondary: #737373 */
+  --muted-foreground: #737373;
+
+  --accent: #F7F7F7;
+  --accent-foreground: #111111;
+
+  --destructive: #EF4444; 
+  --destructive-foreground: #FFFFFF; /* Assumed */
+
+  /* Border usually matches secondary or accent_secondary */
+  --border: #E5E5E5; 
+  
+  /* input_bg: #F3F4F6 */
   --input: #F3F4F6;
-  /* Focus ring: Blue */
-  --ring: #3B82F6;
+  
+  /* Focus ring: Black/Gray or Accent Primary */
+  --ring: #000000;
+
+  /* Charts kept as is or adjusted if needed, leaving as standard for now */
   --chart-1: #EF4444;
   --chart-2: #3B82F6;
   --chart-3: #10B981;
   --chart-4: #8B5CF6;
   --chart-5: #F59E0B;
+
   --sidebar: #FFFFFF;
-  --sidebar-foreground: #1F2937;
+  --sidebar-foreground: #111111;
   --sidebar-primary: #000000;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F3F4F6;
-  --sidebar-accent-foreground: #1F2937;
-  --sidebar-border: #E5E7EB;
-  --sidebar-ring: #3B82F6;
+  --sidebar-accent: #F7F7F7;
+  --sidebar-accent-foreground: #111111;
+  --sidebar-border: #E5E5E5;
+  --sidebar-ring: #000000;
 }
 
 /* Dark Theme - keeping minimal */

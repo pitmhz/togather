@@ -1,0 +1,37 @@
+{
+  "design_system": "Luma_Vibe",
+  "tokens": {
+    "colors": {
+      "background": "#FFFFFF",
+      "surface_primary": "#FFFFFF",
+      "surface_secondary": "#F7F7F7", 
+      "text_primary": "#111111",
+      "text_secondary": "#737373",
+      "accent_primary": "#000000", 
+      "accent_secondary": "#E5E5E5",
+      "input_bg": "#F3F4F6",
+      "input_text": "#111111"
+    },
+    "typography": {
+      "font_family": "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+      "headings": {
+        "h1": "text-3xl font-bold tracking-tight", 
+        "h2": "text-2xl font-semibold tracking-tight",
+        "label": "text-sm font-medium text-gray-500 mb-1.5 block"
+      }
+    },
+    "shapes": {
+      "button_radius": "rounded-full", 
+      "card_radius": "rounded-[32px]",
+      "input_radius": "rounded-2xl",
+      "sheet_radius": "rounded-t-[32px]"
+    },
+    "components": {
+      "button_primary": "w-full bg-black text-white h-12 rounded-full font-medium hover:bg-gray-800 transition-all active:scale-95",
+      "button_secondary": "w-full bg-gray-100 text-black h-12 rounded-full font-medium hover:bg-gray-200 transition-all active:scale-95",
+      "input_field": "w-full bg-[#F3F4F6] border-none text-lg px-4 py-3 rounded-2xl focus:ring-2 focus:ring-black/5 transition-all placeholder:text-gray-400",
+      "bottom_sheet": "fixed bottom-0 left-0 right-0 bg-white rounded-t-[32px] p-6 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] z-50",
+      "avatar_uploader": "relative w-24 h-24 rounded-full bg-gradient-to-tr from-purple-100 to-blue-100 flex items-center justify-center cursor-pointer shadow-sm group"
+    }
+  }
+}

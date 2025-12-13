@@ -5,6 +5,7 @@
  * 1. Refresh auth tokens on every request (keeps cookies alive)
  * 2. Enforce route protection for authenticated pages
  * 3. Redirect unauthenticated users away from protected routes
+ * 4. Enforce onboarding completion for new users
  * 
  * IMPORTANT: This middleware runs on Edge, not Node.js
  */
@@ -56,28 +57,80 @@ export async function updateSession(request: NextRequest) {
   // Route Protection Logic
   const { pathname } = request.nextUrl;
 
-  // Define protected routes (require authentication)
-  const protectedRoutes = ["/dashboard", "/members", "/events", "/profile", "/tools", "/features"];
+  // ===== ROUTE DEFINITIONS =====
+  // Protected routes (require authentication AND completed onboarding)
+  const protectedRoutes = ["/dashboard", "/profile", "/members", "/events", "/tools", "/features"];
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
 
-  // Define auth routes (shouldn't be accessible when logged in)
-  const isAuthRoute = pathname === "/login" || pathname === "/onboarding";
+  // Public routes (accessible without authentication)
+  const publicRoutes = ["/login", "/auth/callback", "/error", "/intro", "/privacy"];
+  const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
 
-  // SECURITY: Redirect unauthenticated users away from protected routes
-  if (!user && isProtectedRoute) {
+  // Onboarding route (requires authentication, but NOT completed onboarding)
+  const isOnboardingRoute = pathname.startsWith("/onboarding");
+  
+  // Root URL
+  const isRootPath = pathname === "/";
+
+  // ===== STEP 1: NO SESSION (Not logged in) =====
+  if (!user) {
+    // Allow access to public routes (login, auth callback, error pages)
+    if (isPublicRoute) {
+      return supabaseResponse;
+    }
+    
+    // Root path -> redirect to login
+    if (isRootPath) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/login";
+      return NextResponse.redirect(redirectUrl);
+    }
+    
+    // Protected routes OR onboarding -> redirect to login with redirect param
+    if (isProtectedRoute || isOnboardingRoute) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/login";
+      redirectUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(redirectUrl);
+    }
+    
+    // Any other route without session -> redirect to login
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
-    // Preserve the original URL for post-login redirect
-    redirectUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(redirectUrl);
   }
 
-  // UX: Redirect authenticated users away from login page
-  if (user && isAuthRoute) {
+  // ===== STEP 2: HAS SESSION (Logged in) =====
+  // Fetch user's onboarding status from profiles table
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_onboarded")
+    .eq("id", user.id)
+    .single();
+
+  const isOnboarded = profile?.is_onboarded ?? false;
+
+  // ===== STEP 2A: NOT ONBOARDED =====
+  if (!isOnboarded) {
+    // Already on onboarding page -> allow
+    if (isOnboardingRoute) {
+      return supabaseResponse;
+    }
+    
+    // Trying to access protected routes, root, or anywhere else -> redirect to onboarding
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/onboarding";
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  // ===== STEP 2B: ONBOARDED (Completed setup) =====
+  // Redirect away from login, onboarding, and root to dashboard
+  if (isPublicRoute || isOnboardingRoute || isRootPath) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/dashboard";
     return NextResponse.redirect(redirectUrl);
   }
 
+  // Allow access to protected routes
   return supabaseResponse;
 }

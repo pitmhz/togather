@@ -11,7 +11,9 @@ import { BirthdayWidget } from "./birthday-widget";
 import { DashboardTools } from "@/components/dashboard-tools";
 import { DashboardHero } from "@/components/dashboard-hero";
 import { RefreshButton } from "@/components/refresh-button";
+
 import { isAdminAsync } from "@/lib/user-role";
+import { OptionalDataSheet } from "@/components/optional-data-sheet";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -213,11 +215,17 @@ export default async function DashboardPage() {
   // Fetch user profile for hero card
   const { data: userProfile } = await supabase
     .from("profiles")
-    .select("full_name, birth_date, mbti")
+    .select("full_name, birth_date, mbti, interests")
     .eq("id", user.id)
     .single();
 
   const displayName = userProfile?.full_name || user.email?.split("@")[0] || "User";
+
+  // Map database 'interests' to 'hobbies' for component if needed, or update component type
+  const profileForSheet = userProfile ? {
+    ...userProfile,
+    hobbies: userProfile.interests
+  } : null;
 
   // Fetch ALL events (RLS handles visibility)
   const { data: allEvents } = await supabase
@@ -409,6 +417,8 @@ export default async function DashboardPage() {
             </div>
           </section>
         )}
+        {/* Optional Data Sheet */}
+        <OptionalDataSheet userProfile={profileForSheet} />
       </div>
     </main>
   );
