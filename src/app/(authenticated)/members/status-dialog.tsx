@@ -46,8 +46,8 @@ export function StatusDialog({
 
   const handleSave = () => {
     startTransition(async () => {
-      const status = isUnavailable ? "unavailable" : "available";
-      
+      const status = isUnavailable ? "unavailable" : "active";
+
       const result = await updateMemberStatus(
         memberId,
         status,
