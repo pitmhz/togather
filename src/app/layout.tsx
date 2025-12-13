@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GlobalHeaderServer } from "@/components/global-header-server";
 import "./globals.css";
 
@@ -39,6 +40,7 @@ export default function RootLayout({
         </div>
         <Toaster position="top-center" richColors />
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
