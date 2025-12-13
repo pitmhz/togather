@@ -3,6 +3,9 @@ import { redirect } from "next/navigation";
 import { Users } from "lucide-react";
 
 import { isAdminAsync } from "@/lib/user-role";
+import { ChevronLeft } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 import { AddMemberDialog } from "./add-member-dialog";
 import { BirthdaySpotlight } from "@/components/birthday-spotlight";
@@ -10,6 +13,7 @@ import { MemberList } from "@/components/member-list";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { BackgroundPattern } from "@/components/ui/background-pattern";
+import { cn, getUpcomingBirthdays } from "@/lib/utils";
 
 type AttendanceRecord = {
   status: string;
@@ -105,7 +109,24 @@ export default async function MembersPage() {
 
   return (
     <>
-      <main className="min-h-screen flex flex-col bg-[#FBFBFA] relative overflow-hidden">
+      {/* Custom Header with Count */}
+      <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-white/80 backdrop-blur-lg border-b border-neutral-200/50 flex items-center justify-between px-4 max-w-[480px] mx-auto">
+        <div className="flex items-center gap-2">
+          <Link href="/dashboard">
+            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+          </Link>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <h1 className="font-semibold text-neutral-900">
+            Jemaat ({activeCount})
+          </h1>
+        </div>
+        <div className="w-9" /> {/* Spacer for balance */}
+      </header>
+
+      <main className="min-h-screen flex flex-col bg-[#FBFBFA] relative overflow-hidden pt-14">
         <BackgroundPattern variant="prayer" />
 
         {/* Content */}
@@ -113,12 +134,14 @@ export default async function MembersPage() {
           {membersWithDots.length > 0 ? (
             <>
               {/* Birthday Spotlight */}
-              <div className="pt-4">
-                <BirthdaySpotlight members={membersWithDots} />
-              </div>
+              {getUpcomingBirthdays(membersWithDots, 5).length > 0 && (
+                <div className="pt-3">
+                  <BirthdaySpotlight members={membersWithDots} />
+                </div>
+              )}
 
               {/* Member List Section */}
-              <section className="px-4">
+              <section className={cn("px-4", getUpcomingBirthdays(membersWithDots, 5).length === 0 && "pt-3")}>
                 <MemberList members={membersWithDots} />
               </section>
             </>

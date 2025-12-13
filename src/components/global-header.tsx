@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 // Route to title mapping
 const ROUTE_TITLES: Record<string, string> = {
     "/dashboard": "",
-    "/members": "Jemaat",
+    "/members": "", // Handled by page itself to show count
     "/profile": "Profil",
     "/profile/edit": "Edit Profil",
     "/events/new": "Buat Acara",

@@ -7,8 +7,12 @@ import { ChevronRight, ChevronDown, Shield, ArrowUpDown } from "lucide-react";
 import { cn, getAvatarUrl, triggerHaptic } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { getMoodEmoji } from "@/components/mood-meter";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { SlidersHorizontal, ArrowUp, ArrowDown } from "lucide-react";
 
-type SortOption = "name-asc" | "name-desc" | "age-old" | "age-young";
+type SortOption = "name-asc" | "name-desc" | "age-old" | "age-young" | "streak-high" | "streak-low";
 
 type Member = {
     id: string;
@@ -18,6 +22,8 @@ type Member = {
     is_active?: boolean | null;
     birth_date?: string | null;
     current_mood?: string | null;
+    mbti?: string | null;
+    attendanceDots?: string[];
 };
 
 type MemberListProps = {
@@ -30,6 +36,8 @@ const SORT_LABELS: Record<SortOption, string> = {
     "name-desc": "Nama Z-A",
     "age-old": "Usia Tertua",
     "age-young": "Usia Termuda",
+    "streak-high": "Paling Rajin",
+    "streak-low": "Jarang Hadir",
 };
 
 export function MemberList({ members, initialLimit = 8 }: MemberListProps) {
@@ -37,7 +45,35 @@ export function MemberList({ members, initialLimit = 8 }: MemberListProps) {
     const [sortBy, setSortBy] = useState<SortOption>("name-asc");
     const [showSortMenu, setShowSortMenu] = useState(false);
 
-    const activeMembers = members.filter(m => m.is_active !== false);
+    // Advanced Filters
+    const [filterIntrovert, setFilterIntrovert] = useState(false);
+    const [filterExtrovert, setFilterExtrovert] = useState(false);
+
+    const activeMembers = members.filter(m => {
+        if (m.is_active === false) return false;
+
+        // MBTI Filter Logic
+        if (filterIntrovert && filterExtrovert) return true; // Show both if both checked (or logic could be exclusive?)
+        if (filterIntrovert && m.mbti?.startsWith("E")) return false;
+        if (filterExtrovert && m.mbti?.startsWith("I")) return false;
+
+        // If sorting by introvert specifically
+        if (filterIntrovert && !m.mbti?.startsWith("I")) return true; // Wait, let's refine
+
+        // Simplified Logic:
+        // If NO filter checked, shold show all? Yes.
+        // If Introvert checked, show only I
+        // If Extrovert checked, show only E
+        // If Both checked, show both (All)
+
+        const isIntrovert = m.mbti?.startsWith("I");
+        const isExtrovert = m.mbti?.startsWith("E");
+
+        if (filterIntrovert && !filterExtrovert && !isIntrovert) return false;
+        if (filterExtrovert && !filterIntrovert && !isExtrovert) return false;
+
+        return true;
+    });
 
     // Sort members based on selected option
     const sortedMembers = useMemo(() => {
@@ -64,6 +100,20 @@ export function MemberList({ members, initialLimit = 8 }: MemberListProps) {
                     return new Date(b.birth_date).getTime() - new Date(a.birth_date).getTime();
                 });
                 break;
+            case "streak-high":
+                sorted.sort((a, b) => {
+                    const countA = (a.attendanceDots || []).filter(s => s === "present").length;
+                    const countB = (b.attendanceDots || []).filter(s => s === "present").length;
+                    return countB - countA;
+                });
+                break;
+            case "streak-low":
+                sorted.sort((a, b) => {
+                    const countA = (a.attendanceDots || []).filter(s => s === "present").length;
+                    const countB = (b.attendanceDots || []).filter(s => s === "present").length;
+                    return countA - countB;
+                });
+                break;
         }
 
         return sorted;
@@ -82,18 +132,88 @@ export function MemberList({ members, initialLimit = 8 }: MemberListProps) {
     return (
         <div>
             {/* Sort Control */}
-            <div className="relative mb-3">
+            <div className="flex gap-2 mb-3">
                 <button
                     onClick={() => {
                         setShowSortMenu(!showSortMenu);
                         triggerHaptic("light");
                     }}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-neutral-200 text-sm text-neutral-600 hover:bg-neutral-50 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-white border border-neutral-200 text-sm text-neutral-600 hover:bg-neutral-50 transition-colors"
                 >
                     <ArrowUpDown className="w-4 h-4" />
-                    {SORT_LABELS[sortBy]}
+                    <span className="truncate">{SORT_LABELS[sortBy]}</span>
                     <ChevronDown className={cn("w-4 h-4 transition-transform", showSortMenu && "rotate-180")} />
                 </button>
+
+                {/* Advanced Filter Button */}
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <button className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-white border border-neutral-200 text-sm text-neutral-600 hover:bg-neutral-50 transition-colors">
+                            <SlidersHorizontal className="w-4 h-4" />
+                            Filter
+                            {(filterIntrovert || filterExtrovert) && (
+                                <span className="w-2 h-2 rounded-full bg-indigo-500 absolute top-2 right-2 border border-white" />
+                            )}
+                        </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-4" align="end">
+                        <div className="space-y-4">
+                            {/* MBTI Filter */}
+                            <div className="space-y-2">
+                                <h4 className="font-medium text-sm text-neutral-900 border-b pb-1">Filter MBTI</h4>
+                                <div className="space-y-2">
+                                    <div className="flex items-center space-x-2">
+                                        <Checkbox
+                                            id="introvert"
+                                            checked={filterIntrovert}
+                                            onCheckedChange={(checked) => setFilterIntrovert(checked === true)}
+                                        />
+                                        <Label htmlFor="introvert" className="text-sm cursor-pointer font-normal">Introvert (I)</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <Checkbox
+                                            id="extrovert"
+                                            checked={filterExtrovert}
+                                            onCheckedChange={(checked) => setFilterExtrovert(checked === true)}
+                                        />
+                                        <Label htmlFor="extrovert" className="text-sm cursor-pointer font-normal">Extrovert (E)</Label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Streak Sort Shortcuts */}
+                            <div className="space-y-2">
+                                <h4 className="font-medium text-sm text-neutral-900 border-b pb-1">Urutkan Kehadiran</h4>
+                                <div className="grid grid-cols-1 gap-2">
+                                    <button
+                                        onClick={() => { setSortBy("streak-high"); setShowSortMenu(false); }}
+                                        className={cn(
+                                            "flex items-center gap-2 px-3 py-2 rounded-lg text-sm border transition-colors",
+                                            sortBy === "streak-high"
+                                                ? "bg-indigo-50 border-indigo-200 text-indigo-700"
+                                                : "bg-white border-neutral-200 hover:bg-neutral-50"
+                                        )}
+                                    >
+                                        <ArrowUp className="w-4 h-4" />
+                                        Paling Rajin
+                                    </button>
+                                    <button
+                                        onClick={() => { setSortBy("streak-low"); setShowSortMenu(false); }}
+                                        className={cn(
+                                            "flex items-center gap-2 px-3 py-2 rounded-lg text-sm border transition-colors",
+                                            sortBy === "streak-low"
+                                                ? "bg-indigo-50 border-indigo-200 text-indigo-700"
+                                                : "bg-white border-neutral-200 hover:bg-neutral-50"
+                                        )}
+                                    >
+                                        <ArrowDown className="w-4 h-4" />
+                                        Jarang Hadir
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </PopoverContent>
+                </Popover>
 
                 {/* Sort Dropdown */}
                 {showSortMenu && (

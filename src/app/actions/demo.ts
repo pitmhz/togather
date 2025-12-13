@@ -33,6 +33,27 @@ function randomDate(startYear: number, endYear: number): string {
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
+// Generate a birthday that's guaranteed to be within the next 30 days
+function randomUpcomingBirthday(): string {
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth() + 1;
+  const currentDay = today.getDate();
+  
+  // Random days ahead (0-30)
+  const daysAhead = Math.floor(Math.random() * 31);
+  const futureDate = new Date(today);
+  futureDate.setDate(today.getDate() + daysAhead);
+  
+  // Use a random birth year (1985-2005) but keep the upcoming month/day
+  const birthYear = 1985 + Math.floor(Math.random() * 20);
+  const month = futureDate.getMonth() + 1;
+  const day = futureDate.getDate();
+  
+  return `${birthYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+
 function generateShortId(): string {
   return Math.random().toString(36).substring(2, 6).toUpperCase();
 }
@@ -115,13 +136,14 @@ export async function redeemInviteCode(code: string): Promise<RedeemResult> {
   const groupId = group.id;
 
   // 6. Generate 15 demo members (use admin client)
+  // First 5 members get upcoming birthdays to populate the birthday spotlight
   const memberInserts = DEMO_NAMES.map((name, idx) => ({
     group_id: groupId,
     user_id: idx === 0 ? userId : null, // First member linked to demo user
     name,
     role: idx === 0 ? "owner" : (idx < 3 ? "admin" : "member"),
     gender: Math.random() > 0.5 ? "L" : "P",
-    birth_date: randomDate(1985, 2005),
+    birth_date: idx < 5 ? randomUpcomingBirthday() : randomDate(1985, 2005), // First 5 get upcoming birthdays
     current_mood: randomItem(MOOD_OPTIONS),
     is_active: true,
     phone: `08${Math.floor(1000000000 + Math.random() * 9000000000)}`.slice(0, 12),
